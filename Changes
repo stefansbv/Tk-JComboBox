@@ -1,5 +1,23 @@
 Revision history for Perl extension Tk::JComboBox.
 
+
+1.03 Bug Fix - Bug Submitted by Ken Prows - 01 Mar 05
+
+   - Bug (cpan#11707) Fixed: AutoFind was not using listbox->see
+     to ensure that an entry in the listbox would be visible
+     when it was selected through AutoFind.
+     - Added 16 Tests in Test suite to test for bug (06_Bugs.t)
+     - Fixed AutoFind sub in JComboBox.pm
+
+   - Updated Construct Call so that JComboBox can only be created
+     by a Frame-based widget.
+     
+
+
+
+1.02 Repaired Broken Test file: accidentally left a MainLoop call in test.
+     No code changed. Versions: 1.01, 0.01, 0.02 removed from CPAN.
+
 1.01 Bug Fix and Refactorings
 
    - Tutorial images were excluded from distribution. Added:

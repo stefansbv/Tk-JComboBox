@@ -29,7 +29,7 @@ use Tk::CWidget;
 use Tk::CWidget::Util::Boolean qw(:all);
 
 use vars qw($VERSION);
-$VERSION = "1.02";
+$VERSION = "1.03";
 
 BEGIN
 {
@@ -63,7 +63,7 @@ BEGIN
 }
 
 use base qw(Tk::CWidget);
-Tk::Widget->Construct('JComboBox');
+Tk::Frame->Construct('JComboBox');
 
 ## This struct below meant to represent the contents displayed in the
 ## pulldown list. Name is the text which is displayed, value is for 
@@ -416,7 +416,7 @@ sub state
 }
 
 #############################################################################
-## For the most part, this option is delegated to the Box subwidget in 
+## For the most part, this option is delegated to the Entry subwidget in 
 ## MODE_EDITABLE, however two additional options: match and cs-match will
 ## indicate that the entry should use the Listbox entries for validation. If 
 ## either of these two options are set, then a default validatecommand will
@@ -825,10 +825,7 @@ sub AutoFind
 
       my $insertIndex = $entry->index('insert');
       $insertIndex-- if $key eq "BackSpace";
-
-
       my $endLetters = substr($cw->getItemNameAt($index), $insertIndex);
-
       my $validateMode = $entry->cget('-validate');
       $entry->configure(-validate => 'none');
       $entry->selectionClear();
@@ -843,6 +840,9 @@ sub AutoFind
    ## show a popup when their version of AutoFind is called. This
    ## option allows that behavior to be configured.
    $cw->showPopup if IsTrue($popupOpt);
+
+   ## BUG FIX (cpan#11707/Ken Prows) As of v1.03/03 Mar 05
+   $listbox->see($index);
 }
 	
 sub BindSubwidgets

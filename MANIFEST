@@ -15,5 +15,6 @@ t/02_Options_Basic.t
 t/03_Options_Callback.t
 t/04_Options_Misc.t
 t/05_Methods.t
+t/06_Bugs.t
 t/button.gif
 META.yml                                 Module meta-data (added by MakeMaker)

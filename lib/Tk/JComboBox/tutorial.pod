@@ -318,7 +318,7 @@ CPAN: JBrowseEntry, ComboEntry (part of Tk-DKW), MenuEntry (part of Tk-GBARR)
 
 =head1 VERSION
 
-This document was last updated 5 Feb 2005, and covers the 1.01 release
+This document was last updated 5 Feb 2005, and covers the 1.03 release
 of JComboBox.
 
 =head1 AUTHOR

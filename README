@@ -1,5 +1,17 @@
-Tk/JComboBox version 1.0
+Tk/JComboBox version 1.03
 =========================
+
+Changes for 1.03 (From Changes file)
+
+1.03 Bug Fix - Bug Submitted by Ken Prows - 01 Mar 05
+
+   - Bug (cpan#11707) Fixed: AutoFind was not using listbox->see
+     to ensure that an entry in the listbox would be visible
+     when it was selected through AutoFind.
+     - Added 16 Tests in Test suite to test for bug (06_Bugs.t)
+     - Fixed AutoFind sub in JComboBox.pm
+
+   - Scanned and updated pods for mods due to release 
 
 JComboBox is a ComboBox implementation that combines several features of the various Combo Box implementations available for Perl/Tk and attempts to provide a solution that should cover the majority of your Combo Box needs. The implementation tends to skew somewhat towards the Java and Win32 implementation of a Combo Box more than the Motif one, however it can be configured with little trouble to mimic the Motif implementation if desired.
 
