@@ -1,59 +1,31 @@
-NAME   Tk:JComboBox
+Tk/JComboBox version 1.0
+=========================
 
-DESCRIPTION
+JComboBox is a ComboBox implementation that combines several features of the various Combo Box implementations available for Perl/Tk and attempts to provide a solution that should cover the majority of your Combo Box needs. The implementation tends to skew somewhat towards the Java and Win32 implementation of a Combo Box more than the Motif one, however it can be configured with little trouble to mimic the Motif implementation if desired.
 
-  Tk::JComboBox is yet another widget that offers a pull down
-menu like Optionmenu, BrowseEntry, ComboEntry among others. It
-was created to combine many of the features that I use most
-often under an interface very similar to the Java Swing
-component by the same name. This widget may have much of
-the same functionality, methods, and behavior but it falls
-somewhat short of being a clone. I inteded for it to be
-similar enough to be easy to learn if one was familiar
-with the component.
+There have been SEVERAL changes since the 0.02 version of this widget -- hopefully all positive. I've spent the majority of the time writing a fairly robust test suite, though there are still a few gaps which are being worked on. A reasonable amount of effort has gone into verifying that the unit tests will work on multiple platforms, though I suspect that there may yet be a problem or two remaining (mostly regarding event generation which seems to be a bit tempermental). I've also converted my HTML documentation to pod, and updated it to reflect the current state of the widget. 
 
-  There is detailed HTML documentation in the docs
-directory, 
+I expect that this will be the last major release of JComboBox, barring bug fixes. I've been working on migrating the JComboBox codebase to a new distribution that I hope to make available on CPAN. JComboBox will become Tk::CWidget::ComboBox in that distribution - I've become a little uneasy about keeping the name as the Java implementation. Other than that, the widget will be mostly unchanged. Newer features will show up in that version and not this one. Thanks to everyone who contributed suggestions, code, and misc feedback. I hope this widget was helpful.
 
-ACKNOWLEDGEMENTS:
+INSTALLATION
 
-This code started out as Graham Barr's MenuEntry. I liked 
-MenuEntry a lot, but it stopped short of what I needed. So I 
-decided to add to it. The more I added (and subtracted), the 
-less it  looked like like MenuEntry until it got to the point 
-where calling it MenuEntry no longer made sense. Thank you Graham 
-for provided the fertile soil from which JComboBox grew. - RCS 
+To install this module type the following:
 
-INSTALLATION:
+   perl Makefile.PL
+   make
+   make test
+   make install
 
-To install, type
- 
-        $ perl Makefile.PL
-        $ make
-        $ make test
-        $ make install
- 
-Send bug reports, comments and suggestions to 
-RobSeegel@aol.com or better yet, post them to the 
-ptk mailing list. That's the best place so that others 
-can be aware of possible problems, too.
+DEPENDENCIES
 
-Cheers!
+This module requires these other modules and libraries:
 
-Rob Seegel
-15 May 2001
+  Tk
 
+COPYRIGHT AND LICENCE
 
-Changes:
+Copyright (C) 2005 rcseege
 
-Version: 0.02
-
-  - Fixed a bug which affected editable mode. It would cause the
-    incorrect value to be returned if a user typed in an alternate
-    value than one on the list. The bug existed in the getSelectedValue()
-    method.
-
-  - Reviewed and slightly tweaked some wording in the docs.
-
-
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself. 
 
