@@ -5,19 +5,19 @@
 ## redistribute and/or modify it under the same terms as Perl itself.
 ##
 ## ACKNOWLEDGEMENTS:
-## Very little comes from nothing, and as the name suggests, 
-## JComboBox.pm is superficially similar to the java.swing.JComboBox  
-## component which is owned by Sun Microsystems. This module shares 
-## some of the same Method names and basic look and feel, but none 
-## of the code.  
+## Very little comes from nothing, and as the name suggests,
+## JComboBox.pm is superficially similar to the java.swing.JComboBox
+## component which is owned by Sun Microsystems. This module shares
+## some of the same Method names and basic look and feel, but none
+## of the code.
 ##
 ## JComboBox.pm owes its basic original structure to Graham Barr's
 ## MenuEntry (Thanks, Graham) and a hodgepodge of methods and options
 ## that appeared useful in BrowseEntry, Optionmenu, and the
 ## ComboEntry widget (part of Tk-DKW). Features that others have asked
-## for have also been added over time. So this widget is basically a 
-## giant combo box stew with a few extra spices that I've come up with 
-## myself. 
+## for have also been added over time. So this widget is basically a
+## giant combo box stew with a few extra spices that I've come up with
+## myself.
 #######################################################################
 package Tk::JComboBox;
 
@@ -29,7 +29,38 @@ use Tk::CWidget;
 use Tk::CWidget::Util::Boolean qw(:all);
 
 use vars qw($VERSION);
-$VERSION = "1.0";
+$VERSION = "1.01";
+
+BEGIN
+{
+   ## Setup a series of private accessors used within public/private
+   ## methods. These are all intended for INTERNAL use only. The
+   ## methods act as a way of consolidating the internal hash keys
+   ## that are being used.
+
+   sub CreateGetSet 
+   {
+      my ($method, $key) = @_;
+      my $sub = sub {
+	 my ($cw, $value) = @_;
+	 return $cw->{$key} unless defined $value;
+	 $cw->{$key} = $value;
+      };
+      no strict 'refs';
+      *{$method} = $sub;
+   }
+
+   CreateGetSet(IsButtonDown  => '__JCB__BTN_DOWN');
+   CreateGetSet(LastAFIndex   => '__JCB__LAST_INDEX');
+   CreateGetSet(LastAFSearch  => '__JCB__LAST_SEARCH');
+   CreateGetSet(LastSelection => '__JCB__LAST_SELECT');
+   CreateGetSet(LastSelName   => '__JCB__LAST_SNAME');
+   CreateGetSet(List          => '__JCB__LIST');
+   CreateGetSet(Mode          => '__JCB__MODE');
+   CreateGetSet(LongestEntry  => '__JCB__ENTRY_LEN');
+   CreateGetSet(Selected      => '__JCB__SELECTION');
+   CreateGetSet(TempRelief    => '__JCB__RELIEF');
+}
 
 use base qw(Tk::CWidget);
 Tk::Widget->Construct('JComboBox');
@@ -49,8 +80,8 @@ struct '_JCBListItem' => [
 
 ## The following constants are meant for internal use only. I wanted
 ## to use hash keys that were not likely to be used by anyone else
-## (including classes that I extended), but the longer versions 
-## seemed clumsy within the code. It is also a convenient means in 
+## (including classes that I extended), but the longer versions
+## seemed clumsy within the code. It is also a convenient means in
 ## tracking all of the keys that I'm using.
 
 use constant {
@@ -58,21 +89,11 @@ use constant {
   MODE_EDITABLE      => "editable",
   VAL_MODE_CSMATCH   => "cs-match",
   VAL_MODE_MATCH     => "match",
-  BTN_DOWN           => "__JCB__BTN_DOWN",
-  ENTRY_WIDTH        => "__JCB__ENTRY_WIDTH",
-  LAST_AF_SEARCH     => "__JCB__LAST_SEARCH",
-  LAST_AF_INDEX      => "__JCB__LAST_INDEX",
-  LAST_SEL_NAME      => "__JCB__LAST_SEL_NAME",
-  LAST_SELECTION     => "__JCB__LAST_SELECTION",
-  LIST               => "__JCB__LIST",
-  MODE               => "__JCB__MODE",
-  SELECTED_INDEX     => "__JCB__SELECTION",
-  SWAP_BG            => "__JCB__SWAP_BG",
-  SWAP_FG            => "__JCB__SWAP_FG",
-  TMP_RELIEF         => "__JCB__RELIEF"
 };
 
 my $BITMAP;
+my $SWAP_BG = "__JCB__SWAP_BG";
+my $SWAP_FG = "__JCB__SWAP_FG";
 
 sub ClassInit {
   my($class,$mw) = @_;
@@ -112,13 +133,13 @@ sub Populate {
    $cw->SUPER::Populate($args);
 
    ## Initiallize Member variables
-   $cw->{LAST_AF_SEARCH} = "";
-   $cw->{LAST_AF_INDEX} = 0;
-   $cw->{LAST_SEL_NAME} = "";
-   $cw->{LAST_SELECTION} = -1;
-   $cw->{LIST} = [];
-   $cw->{SELECTED_INDEX} = -1;
+   $cw->LastAFIndex(-1);
+   $cw->LastAFSearch("");
+   $cw->LastSelection(-1);
+   $cw->LastSelName("");
+   $cw->List([]);
    $cw->LongestEntry(0);
+   $cw->Selected(-1);
 
    my $frame = $cw->Component(
      Frame => 'Frame',
@@ -149,10 +170,6 @@ sub Populate {
    my $listbox = $cw->Subwidget('Listbox');
    my $popup   = $cw->Subwidget('Popup');
 
-   $cw->Delegates(
-      'focus' => $entry,
-      'tabfocus' => $entry);
-
    ## This ConfigSpecs functions as a placeholder for the entire 
    ## widget, and assumes that the mode is MODE_UNEDITABLE. Some 
    ## specs are overridden if the mode is MODE_EDITABLE.
@@ -167,7 +184,7 @@ sub Populate {
       -cursor              => [qw/DESCENDANTS cursor Cursor/],
       -disabledbackground  => [qw/METHOD/],
       -disabledforeground  => [qw/METHOD/, undef, undef, Tk::DISABLED],
-      -entrybackground     => [[$entry, $button]],
+      -entrybackground     => [{-background => [$entry, $button, $listbox]}],
       -entrywidth          => [qw/METHOD entryWidth EntryWidth -1/],
       -font                => [[$entry, $listbox], qw/font Font/],
       -foreground          => [[$entry, $listbox], qw/foreground Foreground/],
@@ -187,7 +204,7 @@ sub Populate {
       ## Callbacks
       -buttoncommand    => [qw/CALLBACK/, undef, undef, \&see],
       -keycommand       => [qw/CALLBACK/],
-      -popupcreate      => [qw/CALLBACK/, undef, undef, \&PopupCreate], 
+      -popupcreate      => [qw/CALLBACK/, undef, undef, \&PopupCreate],
       -popupmodify      => [qw/CALLBACK/],
       -selectcommand    => [qw/CALLBACK/],
       -validatecommand  => [qw/CALLBACK/],
@@ -195,8 +212,8 @@ sub Populate {
       ## Functionality
       -autofind          => [qw/PASSIVE/],
       -choices           => [qw/METHOD/],
-      -listhighlight     => [qw/PASSIVE lightHighlight ListHighlight/, TRUE], 
-      -listwidth         => [qw/PASSIVE listWidth ListWidth 0/],
+      -listhighlight     => [qw/PASSIVE lightHighlight ListHighlight/, TRUE],
+      -listwidth         => [qw/PASSIVE listWidth ListWidth -1/],
       -maxrows           => [qw/METHOD maxRows MaxRows 10/],
       -mode              => [qw/METHOD mode Mode/],
       -updownselect      => [qw/PASSIVE updownSelect UpDownSelect/, TRUE],
@@ -205,12 +222,12 @@ sub Populate {
 
    ## Override readonly option settings
    if ($cw->mode eq MODE_EDITABLE) {
-      $cw->ConfigSpecs(  
-         -entrybackground    => [$entry],
+      $cw->ConfigSpecs(
+         -entrybackground    => [{-background => [$entry, $listbox]}],
          -relief             => [$frame, qw/relief Relief sunken/],
          -selectbackground   => [[$entry, $listbox]],
          -selectforeground   => [[$entry, $listbox]],
-         -selectborderwidth  => [[$entry, $listbox]],  
+         -selectborderwidth  => [[$entry, $listbox]],
       );
    }
 
@@ -220,12 +237,12 @@ sub Populate {
       -options     => '-choices',
     );
     return $cw;
-}   
+}
 
 ############################################################
 ## Configuration Methods
 ############################################################
-sub choices 
+sub choices
 {
    my ($cw, $listAR) = @_;
    return $cw->DumpItems if (!$listAR || ref($listAR) ne "ARRAY");
@@ -239,7 +256,7 @@ sub choices
          my $name = delete $el->{-name} ||
             croak "Invalid Menu Item. -name must be given when " . 
               "using a Hash reference";
-         my $index = $cw->addItem($name, %$el);     
+         my $index = $cw->addItem($name, %$el);
       } 
       else {
          $cw->addItem($el);
@@ -261,9 +278,8 @@ sub disabled
       return;
    }
    if ($cw->state eq 'disabled') {
-      
       $entry->configure("-$option" => $color);
-      $cw->Subwidget('Button')->configure("-$option" => $color) 
+      $cw->Subwidget('Button')->configure("-$option" => $color)
          if $cw->mode eq MODE_UNEDITABLE;
    }
 }
@@ -296,7 +312,7 @@ sub entrywidth
    $cw->UpdateWidth('delete', "");
 }
 
-sub gap 
+sub gap
 {
    my ($cw, $gap) = @_;
    if (!defined($gap)) {
@@ -306,33 +322,39 @@ sub gap
    $cw->UpdateWidth('add', "");
 }
 
-sub highlightbackground 
+sub highlightbackground
 {
    my ($cw, $color) = @_;
    return $cw->{Configure}{-highlightbackground} unless defined $color;
    $cw->Subwidget('Frame')->configure(-highlightbackground => $color);
-   $cw->{Configure}{-highlightbackground} = $color;
 }
 
-sub highlightcolor 
+sub highlightcolor
 {
    my ($cw, $color) = @_;
    return $cw->{Configure}{-highlightcolor} unless defined $color;
    $cw->Subwidget('Frame')->configure(-highlightcolor => $color);
 }
 
-sub maxrows 
+sub maxrows
 {
    my ($cw, $rows) = @_;
    return $cw->{Configure}{-maxrows} unless defined $rows;
    $cw->UpdateListboxHeight;
 }
 
-sub mode 
+sub mode
 {
+   ## Stores the mode within another variable. One problem with how the 
+   ## configuration methods currently work is that they current "store"
+   ## the new value before the method is even called. If a method was 
+   ## intended to validate prior to changing the value then this complicates
+   ## things, because the original value is no longer available. In this
+   ## case, the variable is only allowed to be set once per instance.
+
    my ($cw, $mode, $args) = @_;
-   return $cw->{MODE} unless defined $mode;
-   return if $cw->{MODE};  ## Can only be set once
+   return $cw->Mode unless defined $mode;
+   return if $cw->Mode;
 
    my $frame = $cw->Subwidget('Frame');
    my $entry;
@@ -354,19 +376,19 @@ sub mode
          -anchor => 'w',
          -padx => 4,
          -borderwidth => 0,
-         -takefocus => 1  
+         -takefocus => 1
       );
       $cw->Advertise(Entry => $entry);
       $cw->Advertise(RO_Entry => $entry);
    }
-   else { 
+   else {
       croak "Invalid JComboBox mode: $mode\n";
-      return; 
+      return;
    }
-   $cw->{MODE} = $mode;
+   $cw->Mode($mode);
 }
 
-sub pady 
+sub pady
 {
    my ($cw, $pad) = @_;
    return $cw->{Configure}{-pady} unless defined $pad;
@@ -381,7 +403,7 @@ sub state
 {
    my ($cw, $state) = @_;
    return $cw->{Configure}{-state} || "normal" unless defined $state;
-  
+
    $state = lc($state);
    croak "Invalid value for -state: $state!" 
       if ($state !~ /normal|disabled/);
@@ -415,14 +437,14 @@ sub validate {
    ## a default -validate callback is provided. Otherwise, the validation
    ## mode is passed directly to the Entry widget's validate option.
 
-   my $entry = $cw->Subwidget('Entry');    
-   if ($mode =~ /match/) { 
+   my $entry = $cw->Subwidget('Entry');
+   if ($mode =~ /match/) {
       $entry->configure(
          -validate => 'key',
-      ); 
+      );
    }
-   else { 
-      $entry->configure(-validate => $mode); 
+   else {
+      $entry->configure(-validate => $mode);
    }
 }
 
@@ -432,12 +454,12 @@ sub validate {
 
 sub addItem { shift->insertItemAt('end', @_) };
 
-sub clearSelection 
+sub clearSelection
 {
    my $cw = shift;
-   $cw->{SELECTED_INDEX} = -1;
-   $cw->{LAST_AF_INDEX} = -1;
-   $cw->{LAST_AF_SEARCH} = "";
+   $cw->LastAFIndex(-1);
+   $cw->LastAFSearch("");
+   $cw->Selected(-1);
 
    $cw->Subwidget('Listbox')->selectionClear(0, 'end');
    my $entry = $cw->Subwidget('Entry');
@@ -455,11 +477,12 @@ sub clearSelection
 ## Override the following focus methods to ensure the
 ## correct
 sub focus { shift->Subwidget('Entry')->focus; }
-sub tabFocus { shift->focus; }
+sub tabFocus { shift->Subwidget('Entry')->focus; }
 
-sub getItemCount { return scalar( @{$_[0]->{LIST}} ); }
+sub getItemCount { return scalar( @{shift->List} ); }
 
-sub getItemIndex { 
+sub getItemIndex
+{
    my ($cw, $item, %args) = @_;
 
    ## Extract mode (defaults to exact if not set
@@ -493,31 +516,33 @@ sub getItemIndex {
    foreach my $i ($start .. ($cw->getItemCount - 1)) {
       my $field;
       if    ($type eq 'value') { $field = $cw->getItemValueAt($i) }
-      elsif ($type eq 'name')  { $field = $cw->{LIST}->[$i]->name }
- 
-      if    ($mode eq 'usecase'    && $field =~ /^\Q$item\E/) { 
+      elsif ($type eq 'name')  { $field = $cw->List->[$i]->name }
+
+      if    ($mode eq 'usecase'    && $field =~ /^\Q$item\E/) {
          $index = $i; last;
       }
-      elsif ($mode eq 'ignorecase' && $field =~ /^\Q$item\E/i) { 
+      elsif ($mode eq 'ignorecase' && $field =~ /^\Q$item\E/i) {
          $index = $i; last;
       }
-      elsif ($mode eq 'exact'      && $field eq $item) { 
+      elsif ($mode eq 'exact'      && $field eq $item) {
          $index = $i; last;
       }
    }
-   return $cw->getItemIndex($item, %args) 
+   return $cw->getItemIndex($item, %args)
       if (!defined($index) && IsTrue($wrap));
    return $index;
 }
 
-sub getItemNameAt {
+sub getItemNameAt
+{
    my ($cw, $index) = @_;
    $index = $cw->index($index);
-   return $cw->DisplayedName() if (!defined($index) || $index < 0);   
-   return $cw->{LIST}->[$index]->name;
+   return $cw->DisplayedName() if (!defined($index) || $index < 0);
+   return $cw->List->[$index]->name;
 }
 
-sub getItemValueAt { 
+sub getItemValueAt
+{
    my ($cw, $index) = @_;
    $index = $cw->index($index);
 
@@ -525,24 +550,17 @@ sub getItemValueAt {
    ## then the value will come from the displayed name.
    return $cw->DisplayedName() if (!defined($index) || $index < 0);
 
-   my $item = $cw->{LIST}->[$index];
+   my $item = $cw->List->[$index];
    return $item->value if defined($item->value);
    return $item->name;
  }
 
-sub getSelectedIndex { 
-   my $cw = shift;
-   return $cw->{SELECTED_INDEX};
-}
- 
-sub getSelectedValue 
-{ 
-  my $cw = shift;
-  return $cw->getItemValueAt('selected');
-}
+sub getSelectedIndex { return shift->Selected; }
 
-sub hidePopup 
-{ 
+sub getSelectedValue { return shift->getItemValueAt('selected'); }
+
+sub hidePopup
+{
    my ($cw) = @_;
    my $popup = $cw->Subwidget('Popup');
 
@@ -552,8 +570,8 @@ sub hidePopup
     }
 }
 
-sub index 
-{ 
+sub index
+{
    my ($cw, $index) = @_;
    return undef unless defined($index);
 
@@ -561,80 +579,76 @@ sub index
    return $cw->getSelectedIndex   if (lc($index) eq 'selected');
    return $cw->getItemCount - 1   if (lc($index) eq 'last');
    return $cw->getItemCount       if (lc($index) eq 'end');
-   return $listbox->index($index) if ($index =~ /\D/);  
+   return $listbox->index($index) if ($index =~ /\D/);
 
    if ($index < 0 || $index >= $cw->getItemCount) {
       carp("Index: $index is out of array bounds");
       return undef;
    }
    return $index;
-}    
-   
-sub insertItemAt { 
-  my ($cw, $i, $name, %args) = @_;
-
-  if (!defined($name)) {
-    carp "Insert failed: undefined element";
-    return;
-  }
-  my $index = $cw->index($i);
-  my $lb = $cw->Subwidget('Listbox');
-
-  ## Create new ListItem and set name
-  my $item = _JCBListItem->new;
-  $item->name($name);
-
-  ## Set the value if it's given
-  my $value = $args{-value};
-  if (defined($value)) {
-    $item->value($value);
-  }
-
-  ## Add Name to Listbox
-  $lb->insert($index, $name);
-
-  ## Add ListItem to Internal Array (append or splice)
-  if ($lb->index('end') == $index) {
-    push @{$cw->{LIST}}, $item;
-  } else {
-    my $listAR = $cw->{LIST};
-    splice(@$listAR, $index, 0, ($item, splice(@$listAR, $index)));
-    $cw->{LIST} = $listAR;
-  }
- 
-  ## Set Entry as selected if option is set
-  my $selIndex = $cw->getSelectedIndex;
-  my $sel = $args{-selected};
-  if ($sel && $sel =~ /yes|true|1/i) {
-    $cw->setSelectedIndex($index);
-  }
-  elsif ($index <= $selIndex) 
-  {
-    $cw->setSelectedIndex($selIndex + 1);
-  }
-  $cw->UpdateWidth('add', $name);
-}    
-
-sub popupIsVisible 
-{
-  return 1 if $_[0]->Subwidget('Popup')->ismapped;
-  return 0;
 }
 
-sub removeAllItems 
+sub insertItemAt
+{
+   my ($cw, $i, $name, %args) = @_;
+
+   if (!defined($name)) {
+      carp "Insert failed: undefined element";
+      return;
+   }
+   my $index = $cw->index($i);
+   my $lb = $cw->Subwidget('Listbox');
+
+   ## Create new ListItem and set name
+   my $item = _JCBListItem->new;
+   $item->name($name);
+
+   ## Set the value if it's given
+   my $value = $args{-value};
+   if (defined($value)) {
+      $item->value($value);
+   }
+
+   ## Add Name to Listbox
+   $lb->insert($index, $name);
+
+   ## Add ListItem to Internal Array (append or splice)
+   my $listAR = $cw->List;
+   if ($lb->index('end') == $index) {
+      push @{$listAR}, $item;
+   } else {
+      splice(@$listAR, $index, 0, ($item, splice(@$listAR, $index)));
+   }
+   $cw->List($listAR);
+
+   ## Set Entry as selected if option is set
+   my $selIndex = $cw->Selected;
+   my $sel = $args{-selected};
+   if ($sel && $sel =~ /yes|true|1/i) {
+      $cw->setSelectedIndex($index);
+   }
+   elsif ($index <= $selIndex) 
+   {
+      $cw->setSelectedIndex($selIndex + 1);
+   }
+   $cw->UpdateWidth('add', $name);
+}
+
+sub popupIsVisible { return shift->Subwidget('Popup')->ismapped; }
+
+sub removeAllItems
 {
    my $cw = shift;
    return unless $cw->getItemCount > 0;
    $cw->clearSelection;
    $cw->Subwidget('Listbox')->delete(0, 'end');
-   $cw->{ENTRY_WIDTH} = 0;
-   $cw->{LIST} = [];
+   $cw->LongestEntry(0);
+   $cw->List([]);
 }
 
-
-sub removeItemAt { 
+sub removeItemAt
+{
    my ($cw, $index) = @_;
-
    my $count = $cw->getItemCount;
    if ($count == 0) {
       carp "There are no list elements to remove";
@@ -644,7 +658,7 @@ sub removeItemAt {
    my $delIndex = $cw->index($index);
    $delIndex-- if (defined($index) && $index eq "end");
    return unless defined $delIndex;
-   
+
    if ($delIndex < 0 || $delIndex >= $count) {
       carp "Index: $index is out of array bounds!";
       return;
@@ -653,9 +667,9 @@ sub removeItemAt {
    my $selIndex = $cw->getSelectedIndex;
    $cw->clearSelection;
 
-   my $listAR = $cw->{LIST};
-   splice(@$listAR, $delIndex, 1);   
-   $cw->{LIST} = $listAR;
+   my $listAR = $cw->List;
+   splice(@$listAR, $delIndex, 1);
+   $cw->List($listAR);
    $cw->Subwidget('Listbox')->delete($delIndex);
 
    if ($selIndex != $delIndex) {
@@ -665,7 +679,7 @@ sub removeItemAt {
    $cw->UpdateWidth('delete');
 }
 
-sub see 
+sub see
 {
    my ($cw, $index) = @_;
    $index = $cw->index($index);
@@ -673,7 +687,7 @@ sub see
    $cw->Subwidget('Listbox')->see($index) if defined($index);
 }
 
-sub setSelected 
+sub setSelected
 {
    my ($cw, $str, %args) = @_; 
    my $index = $cw->getItemIndex($str, %args);
@@ -682,14 +696,14 @@ sub setSelected
    return 0;
 }
 
-sub setSelectedIndex {
+sub setSelectedIndex
+{
    my ($cw, $index) = @_;
-
    $index = $cw->index($index) unless $index == -1;
    return unless defined($index);
 
-   $cw->{LAST_SELECTION} = $cw->{SELECTED_INDEX};
-   $cw->{SELECTED_INDEX} = $index;
+   $cw->LastSelection($cw->Selected);
+   $cw->Selected($index);
 
    ## Adjust Listbox selection
    my $listbox = $cw->Subwidget('Listbox');
@@ -704,8 +718,8 @@ sub setSelectedIndex {
    $cw->SelectCommand();
 }
 
-sub showPopup 
-{ 
+sub showPopup
+{
    my $cw = shift;
    return if ($cw->popupIsVisible || $cw->getItemCount == 0);
 
@@ -738,7 +752,7 @@ sub AutoFind
    return unless IsTrue($enabledOpt);
 
    ## select takes priority over complete
-   $completeOpt = "false" 
+   $completeOpt = "false"
       if (IsTrue($completeOpt) && IsTrue($selectOpt));
 
    my $mode = $cw->cget('-mode');
@@ -748,7 +762,7 @@ sub AutoFind
    my $searchStr = $letter;
    if ($mode eq MODE_EDITABLE) {
       $searchStr = substr($entry->get, 0, $entry->index('insert'));
-   }      
+   }
 
    if (! defined($searchStr) || length($searchStr) == 0) {
       if ($mode eq MODE_EDITABLE) {
@@ -764,16 +778,17 @@ sub AutoFind
    $csVal = "usecase" if IsTrue($casesensOpt);
 
    my $start = 0;
-   $start = $cw->{LAST_AF_INDEX} + 1 
-      if $searchStr eq $cw->{LAST_AF_SEARCH} && defined $cw->{LAST_AF_INDEX};
+   $start = $cw->LastAFIndex + 1 
+      if $searchStr eq $cw->LastAFSearch && defined $cw->LastAFIndex;
 
    my $index = $cw->getItemIndex($searchStr,
       -mode => $csVal,
       -start => $start,
-      -wrap => 1);   
+      -wrap => 1);
+
    $index = -1 if (! defined($index));
-   $cw->{LAST_AF_INDEX} = $index;
-   $cw->{LAST_AF_SEARCH} = $searchStr;
+   $cw->LastAFIndex($index);
+   $cw->LastAFSearch($searchStr);
 
    ## For all Cases, clear the selection from the Listbox
 
@@ -805,7 +820,7 @@ sub AutoFind
    ## -complete option: enables autocompletion for the entry
    ## autocompletion does nothing in MODE_UNEDITABLE, and is 
    ## ignored if the -select option is enabled.
-   
+
    if (IsTrue($completeOpt) && $mode eq MODE_EDITABLE) {
 
       my $insertIndex = $entry->index('insert');
@@ -827,14 +842,14 @@ sub AutoFind
    ## -showpopup option: Some ComboBox implementations do not
    ## show a popup when their version of AutoFind is called. This
    ## option allows that behavior to be configured.
-   $cw->showPopup if IsTrue($popupOpt);      
+   $cw->showPopup if IsTrue($popupOpt);
 }
 	
-sub BindSubwidgets 
+sub BindSubwidgets
 {
    my $cw = shift;
    my $e = $cw->Subwidget('Entry');
- 
+
    $e->bind('<Alt-Down>', [$cw => 'AltDown']);
    $e->bind('<Alt-Up>',   [$cw => 'hidePopup']);
    $e->bind('<Down>',     [$cw => 'UpDown', '1']);
@@ -867,8 +882,8 @@ sub CreateButton {
    my $frame = $cw->Subwidget('Frame');
    my $button = $frame->Label(%args);
    $button->bind('<ButtonPress-1>',   [$cw => 'ButtonDown']);
-   $button->bind('<ButtonRelease-1>', [$cw => 'ButtonUp']); 
-   $button->bind('<Leave>',           [$cw => 'ButtonUp']) 
+   $button->bind('<ButtonRelease-1>', [$cw => 'ButtonUp']);
+   $button->bind('<Leave>',           [$cw => 'ButtonUp'])
       if (IsFalse($ignoreLeave));
    return $button;
 }
@@ -910,7 +925,7 @@ sub CreateListboxPopup {
    $cw->Advertise(Scrollbar => $sb);
 
    $lb->bind('<Motion>', [$cw => 'ListboxMotion', Ev('@')]);
-   $lb->bind('<Leave>',  [$cw => 'ListboxLeave', Ev('x'), Ev('y')]);       
+   $lb->bind('<Leave>',  [$cw => 'ListboxLeave', Ev('x'), Ev('y')]);
    $lb->bind('<Enter>',  [$cw => 'ListboxEnter']); 
    $lb->bind('<ButtonRelease-1>', 
               [$cw => 'ButtonRelease', Ev('index',Ev('@'))]);
@@ -924,7 +939,7 @@ sub DisableControls
 
    my $bg = $cw->cget('-disabledbackground');
    my $fg = $cw->cget('-disabledforeground');
-   $button->{SWAP_FG} = $button->cget('-foreground');
+   $button->{$SWAP_FG} = $button->cget('-foreground');
    $button->configure(-foreground => $fg);
 
    $cw->configure(-takefocus => 0);
@@ -932,23 +947,23 @@ sub DisableControls
       $entry->configure(-state => 'disabled');
       return if $Tk::VERSION >= 804;
 
-      $entry->{SWAP_BG} = $entry->cget('-background');
+      $entry->{$SWAP_BG} = $entry->cget('-background');
       $entry->configure(-background => $bg);
    }
-   $entry->{SWAP_FG} = $entry->cget('-foreground');
+   $entry->{$SWAP_FG} = $entry->cget('-foreground');
    $entry->configure(-foreground => $fg);
 }
-  
+
 sub EnableControls
 {
    my $cw = shift;
    my $button = $cw->Subwidget('Button');
    my $entry = $cw->Subwidget('Entry');
-   
-   my $fg = $button->{SWAP_FG};
+
+   my $fg = $button->{$SWAP_FG};
    return unless defined $fg;
 
-   $button->{SWAP_FG} = $button->cget('-foreground');
+   $button->{$SWAP_FG} = $button->cget('-foreground');
    $button->configure(-foreground => $fg);
 
    if ($cw->mode eq MODE_EDITABLE) {
@@ -956,11 +971,11 @@ sub EnableControls
       return if $Tk::VERSION >= 804;
 
       my $bg = $entry->{SWAP_BG};
-      $entry->{SWAP_BG} = $entry->cget('-background');
+      $entry->{$SWAP_BG} = $entry->cget('-background');
       $entry->configure(-background => $bg);
    }
-   $fg = $entry->{SWAP_FG};
-   $entry->{SWAP_FG} = $entry->cget('-foreground');
+   $fg = $entry->{$SWAP_FG};
+   $entry->{$SWAP_FG} = $entry->cget('-foreground');
    $entry->configure(-foreground => $fg);
    $cw->configure(-takefocus => 1);
 }
@@ -1024,13 +1039,6 @@ sub DumpItems
    return \@list;
 }
 
-sub LongestEntry 
-{
-   my ($cw, $width) = @_;
-   return $cw->{ENTRY_WIDTH} unless defined $width;
-   $cw->{ENTRY_WIDTH} = $width;
-}
-
 sub GetProperty {
    my ($name, $hashRef, $default, $delete) = @_;
 
@@ -1042,9 +1050,9 @@ sub GetProperty {
    delete $hashRef->{$name} if IsTrue($delete);
    return $val;
 }
-  
+
 #############################################################################
-## Arranges layout of the Advertised Box and Button widgets. These subwidgets 
+## Arranges layout of the Advertised Box and Button widgets. These subwidgets
 ## are laid out using the grid manager, which I find tends to scale downwards
 ## better.
 #############################################################################
@@ -1054,8 +1062,8 @@ sub LayoutControls {
    my $frame = $cw->Subwidget('Frame');
    my $entry = $cw->Subwidget('Entry');
 
-   ## Editable "Button" is really a Label widget with minimal bindings. There 
-   ## were Win32 display issues with the Button widget, so I created a VERY 
+   ## Editable "Button" is really a Label widget with minimal bindings. There
+   ## were Win32 display issues with the Button widget, so I created a VERY
    ## basic version using Label. Look at using ImageButton in a future release.
    my $button = $cw->CreateButton(
       -anchor => 'center',
@@ -1086,11 +1094,10 @@ sub LayoutControls {
 
 sub PointerOverWidget {
    my ($cw, @widgets) = @_;
-
    my $xPos = $cw->pointerx;
    my $yPos = $cw->pointery;
    my $overWidget = $cw->containing($xPos, $yPos);
-  
+
    foreach my $w (@widgets) {
       return TRUE if defined $overWidget && $w == $overWidget ;
    }
@@ -1105,7 +1112,7 @@ sub PointerOverWidget {
 ## repeatedly for the same selection. Most of the complication
 ## has to do with the editable mode. 
 #############################################################################
-sub SelectCommand 
+sub SelectCommand
 {
    my $cw = shift;
    my $selIndex = $cw->getSelectedIndex;
@@ -1125,12 +1132,12 @@ sub SelectCommand
    ## last selection.
    my $notifyObserver = 0;
    $notifyObserver = 1 if 
-     ($selIndex != $cw->{LAST_SELECTION} || $selName ne $cw->{LAST_SEL_NAME});
+     ($selIndex != $cw->LastSelection || $selName ne $cw->LastSelName);
 
    if ($notifyObserver) {
       my $selValue = $cw->getSelectedValue;
-      $cw->{LAST_SEL_NAME} = $selName;
-      $cw->{LAST_SELECTION} = $selIndex;      
+      $cw->LastSelName($selName);
+      $cw->LastSelection($selIndex);
       $cw->Callback(-selectcommand => $cw, $selIndex, $selName, $selValue)
 	 if (ref($cw->cget('-selectcommand')) eq 'Tk::Callback');	
    }
@@ -1167,10 +1174,10 @@ sub PopupCreate {
    my $popupPosY   = $cw->rooty + $cw->height;
    my $popupWidth  = $cw->width;  ## Defaults to width of the ComboBox
    my $popupHeight = $listbox->ReqHeight + $popup->cget('-borderwidth') * 2;
-   
+
    ## Override width if -listwidth is defined
    my $listWidth = $cw->cget('-listwidth');
-   if (defined $listWidth) {
+   if (defined $listWidth && $listWidth > -1) {
       $listbox->configure(-width => $listWidth);
       $popupWidth = $listbox->ReqWidth + $popup->cget('-borderwidth') * 2;
       $popupWidth = $popupWidth + $scrollbar->ReqWidth if $scrollbar->manager;
@@ -1231,8 +1238,8 @@ sub UpdateListboxHeight
 
    my $rows = $listbox->size;
    my $maxRows = $cw->cget('-maxrows');
-   
-   if ($maxRows > 0 && $maxRows < $rows) {
+
+   if ($maxRows >= 0 && $maxRows < $rows) {
       $rows = $maxRows;
       $sb->grid(qw/-row 0 -column 1 -sticky ns/) if ! $sb->manager;
    }
@@ -1273,7 +1280,7 @@ sub UpdateWidth {
   } 
   elsif ($action eq "delete") {
     my $currLen = 0;
-    foreach my $item (@{$cw->{LIST}}) {
+    foreach my $item (@{$cw->List}) {
       if ($currLen < length($item->name)) {
 	$currLen = length($item->name);
       }
@@ -1336,8 +1343,8 @@ sub ButtonDown
    $button = $cw->Subwidget('Frame') if $cw->mode eq MODE_UNEDITABLE;
    $button = $cw->Subwidget('Button') if $cw->mode eq MODE_EDITABLE;
 
-   $cw->{BTN_DOWN} = TRUE;
-   $cw->{TMP_RELIEF} = $button->cget('-relief');
+   $cw->IsButtonDown(TRUE);
+   $cw->TempRelief($button->cget('-relief'));
    $button->configure(-relief => 'sunken');
 
    ## Call buttoncommand if defined
@@ -1349,7 +1356,7 @@ sub ButtonLeave
 {
    my ($cw, $trigger, $ignoreLeave) = @_;
    return unless $cw->state eq 'normal';
-   return if (IsFalse($cw->{BTN_DOWN}));
+   return if (IsFalse($cw->IsButtonDown));
 
    if (defined($ignoreLeave) && ref($ignoreLeave) eq "ARRAY") {
   
@@ -1368,7 +1375,7 @@ sub ButtonMotion
    return unless $cw->state eq 'normal';
 
    ## If The Button is Up, then we no longer need this binding.
-   if (IsFalse($cw->{BTN_DOWN})) {
+   if (IsFalse($cw->IsButtonDown)) {
       $trigger->bind('<Motion>', "");
       return;
    }
@@ -1395,15 +1402,15 @@ sub ButtonUp {
    my $mode = $cw->cget('-mode');
    if ($mode eq MODE_UNEDITABLE)  { $button = $cw->Subwidget('Frame'); } 
    elsif ($mode eq MODE_EDITABLE) { $button = $cw->Subwidget('Button'); }
- 
-   if ($cw->{TMP_RELIEF}) { 
-     $button->configure(-relief => $cw->{TMP_RELIEF});
-     $cw->{TMP_RELIEF} = undef;
-  }
-  $cw->{BTN_DOWN} = FALSE;
+
+   if ($cw->TempRelief) {
+      $button->configure(-relief => $cw->TempRelief);
+      $cw->TempRelief(0);
+   }
+   $cw->IsButtonDown(FALSE);
 }
 
-sub Focus 
+sub Focus
 {
    my ($cw, $inOut) = @_;
    my $bg = $cw->highlightcolor;
@@ -1458,16 +1465,16 @@ sub NonSelect {
   }
 
 }
-    
+
 sub RedirectFocus { shift->Subwidget('Entry')->focus; }
 
-sub Return 
+sub Return
 {
    my $cw = shift;
    return unless $cw->state eq 'normal';
    my ($index) = $cw->Subwidget('Listbox')->curselection;
    $index = -1 unless defined($index);
-   
+
    $cw->hidePopup if $cw->popupIsVisible;
    $cw->Subwidget('Entry')->selectionClear() 
      if $cw->mode eq MODE_EDITABLE;

@@ -3,6 +3,9 @@ package Tk::CWidget::Util::Boolean;
 use strict;
 use Carp;
 
+use vars qw($VERSION);
+$VERSION = "0.01";
+
 require Exporter;
 our @ISA    = qw(Exporter);
 our @EXPORT_OK = qw(IsTrue IsFalse TRUE FALSE);

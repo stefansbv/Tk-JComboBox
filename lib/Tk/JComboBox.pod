@@ -118,7 +118,7 @@ Specifies the foreground color to display when the JComboBox state is set to I<d
 
 =item Switch: -entrybackground
 
-Specifies the background color used in one or more subwidgets depending on the mode. In both modes, the color is applied to the Entry widget. In I<readonly> mode, the background is also applied to the Button subwidget. 
+Specifies the background color used in one or more subwidgets depending on the mode. In both modes, the color is applied to the Entry and Listbox subwidgets. In I<readonly> mode, the background is also applied to the Button subwidget. 
 
 =item Name: entryWidth
 
@@ -280,7 +280,7 @@ Specifies whether or not list highlighting should be set. List highlighting is t
 
 =item Switch: -listwidth
 
-By default, the width of the Popup is sized to fit the width of the JComboBox. This option allows that behavior to be modified. If defined, the listwidth will be applied to the width of the Listbox, and the width of the Listbox will be the primary factor in sizing the Popup (borderwidth of the Popup, and presence of a scrollbar also will figure into sizing).
+By default, the width of the Popup is sized to fit the width of the JComboBox. This option allows that behavior to be modified. If defined, the listwidth will be applied to the width of the Listbox, and the width of the Listbox will be the primary factor in sizing the Popup (borderwidth of the Popup, and presence of a scrollbar also will figure into sizing). The default value is B<-1>.
 
 =item Name: maxRows
 

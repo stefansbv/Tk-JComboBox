@@ -59,8 +59,8 @@ The JComboBox in the image above was create using the following code:
 
   my $mw = MainWindow->new;
   my $jcb = $mw->JComboBox(
+     -entrybackground => 'white',
      -mode => 'editable',
-     -textbackground => 'white',
      -relief => 'sunken',
      -choices => [qw/Black Blue Green Purple Red Yellow/],
   )->pack;
@@ -105,11 +105,11 @@ hash references and scalars if you wish, like this:
 
    -choices => [
       'Black',
-      { -name => 'Blue',   -value => '#0000ff' },
+      { qw/-name Blue -value #0000ff/},
       'Green',
       'Purple',
       'Red',
-      { -name => 'Yellow', -value => '#ffff00' }
+      { qw/-name Yellow -value #ffff00/}
    ]
 
 =head2 Adding One Item at a Time
@@ -189,12 +189,12 @@ Examples:
   my $mw = MainWindow->new();
   my $jcb = $mw->JComboBox(
     -choices => [
-      { -name => 'Black', -value => 1},
-      { -name => 'Blue',  -value => 2},
-      { -name => 'Green', -value => 3},
-      { -name => 'Purple' -value => 4},
+      {qw/-name Black  -value 1/},
+      {qw/-name Blue   -value 2/},
+      {qw/-name Green  -value 3/},
+      {qw/-name Purple -value 4/},
       'Red',
-      { -name => 'Yellow' -value => 5 }]
+      {qw/-name Yellow -value 5/}]
   )->pack;
 
   ## Selects the last element, 'Yellow' using defaults for -type and -mode
@@ -318,7 +318,7 @@ CPAN: JBrowseEntry, ComboEntry (part of Tk-DKW), MenuEntry (part of Tk-GBARR)
 
 =head1 VERSION
 
-This document was last updated 16 Dec 2004, and covers the 1.0 release
+This document was last updated 5 Feb 2005, and covers the 1.01 release
 of JComboBox.
 
 =head1 AUTHOR

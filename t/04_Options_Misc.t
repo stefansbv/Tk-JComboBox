@@ -2,7 +2,7 @@
 
 #################################################################
 ## Name: 04_Options_Misc.t
-## 
+##
 ## Purpose: Tests Specialized options that may have complex 
 ##  effects on the JComboBox. This is basically an excuse to
 ##  partition some of the option tests into a separate test file.
@@ -12,15 +12,15 @@
 ##  -choices/-options
 ##  -listhighlight
 ##  -maxrows
+##  -state
 ##  -updownselect
-################################################################
- 
+################################################################ 
 use Carp;
 use strict;
 
 use Tk;
 use Tk::JComboBox;
-use Test::More tests => 219;
+use Test::More tests => 229;
 
 my $mw = MainWindow->new;
 
@@ -47,6 +47,12 @@ TestListhighlight('readonly');
 #####################
 TestMaxRows('editable');
 TestMaxRows('readonly');
+
+#####################
+## -state
+#####################
+TestState('editable');
+TestState('readonly');
 
 #####################
 ## -updownselect
@@ -89,7 +95,7 @@ sub checkListboxSelection
    my ($index) = $jcb->Subwidget('Listbox')->curselection;
    is($index, $expectedIndex);
 }
-   
+
 sub checkMotionOnIndex
 {
    my ($lb, $index, $expected) = @_;
@@ -120,8 +126,11 @@ sub checkSubwidgetOption
 sub checkUpDownSelection
 {
    my ($jcb, $event, $index, $value) = @_;
-   $jcb->Subwidget('Entry')->eventGenerate($event);
-   $jcb->update;
+
+   my $adjust = 0;
+   $adjust = 1 if $event eq '<Down>';
+   $adjust = -1 if $event eq '<Up>';
+   $jcb->UpDown($adjust);
    is( $jcb->getSelectedIndex, $index);
    is( $jcb->getSelectedValue, $value);
 }
@@ -161,6 +170,8 @@ sub TestAutoFind
       TestAutoFindReadonlySelect();
    }
 }
+
+
 
 sub TestAutoFindComplete
 {
@@ -460,11 +471,13 @@ sub TestMaxRows
 
    my $jcb = setup('pack',
       -choices => [qw/one two three four five six seven eight/]);
-   $jcb->update;
+   $mw->update;
    my $lb = $jcb->Subwidget('Listbox');
+   $jcb->showPopup;
+   $jcb->hidePopup;
 
    is($jcb->cget(-maxrows), 10);
-   is($lb->cget(-height), 0);
+   is($lb->cget(-height), 8);
 
    $jcb->configure(-maxrows => 2);
    is($lb->cget(-height), 2);
@@ -473,6 +486,46 @@ sub TestMaxRows
    is($lb->cget(-height), 8);
    $jcb->destroy;
 }
+
+sub TestState
+{
+   my $mode = shift;
+   my $w;
+
+   my $b1 = $mw->Button(-text => 'one')->pack;
+   my $jcb = $mw->JComboBox(
+      -entrywidth => 10,
+      -mode => $mode,
+      -state => 'normal'
+   )->pack;
+   my $b2 = $mw->Button(-text => 'two')->pack;
+   $mw->update;
+   $b1->focusForce;
+
+   MainLoop;
+
+   $b1->focusNext;
+   $w = $mw->focusCurrent;
+   is(ref($w), 'Tk::Entry') if $mode eq 'editable';
+   is(ref($w), 'Tk::Label') if $mode eq 'readonly';
+
+   $w->focusNext;
+   $w = $mw->focusCurrent;
+   is(ref($w), 'Tk::Button');
+   is($w->cget('-text'), 'two');
+
+
+   $jcb->configure(-state => 'disabled');
+
+   $b1->focusForce;
+   $b1->focusNext;
+   $w = $mw->focusCurrent;
+   is(ref($w), 'Tk::Button');
+   is($w->cget('-text'), 'two');
+
+   foreach ($b1, $jcb, $b2) { $_->destroy; }
+}
+
 
 sub TestUpDownSelect
 {

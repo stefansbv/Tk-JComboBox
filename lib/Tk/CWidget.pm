@@ -4,6 +4,9 @@ use Carp;
 use Tk qw(Ev);
 use Tk::CWidget::Util::Boolean qw(IsTrue);
 
+use vars qw($VERSION);
+$VERSION = "0.01";
+
 use base qw(Tk::Frame);
 Tk::Widget->Construct('CWidget');
 

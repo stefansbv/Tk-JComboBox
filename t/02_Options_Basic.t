@@ -13,12 +13,14 @@
 ##  -background
 ##  -borderwidth 
 ##  -cursor
+##  -entrybackground
 ##  -entrywidth
 ##  -font
 ##  -foreground
 ##  -gap
 ##  -highlightcolor
 ##  -highlightbackground
+##  -listwidth
 ##  -pady
 ##  -selectbackground
 ##  -selectforeground
@@ -41,7 +43,7 @@ use strict;
 use Tk;
 use Tk::Font;
 use Tk::JComboBox;
-use Test::More tests => 198;
+use Test::More tests => 219;
 
 ####################################################
 ## Appearance-related Options
@@ -77,6 +79,20 @@ checkCreateGetSet("readonly", -borderwidth => 5, ['Frame']);
 #####################
 checkDescendantsTest("editable", -cursor => 'left_ptr');
 checkDescendantsTest("readonly", -cursor => 'left_ptr');
+
+#####################
+## -entrybackground
+#####################
+checkCreateGetSet('editable',
+   -entrybackground => 'blue', 
+   [[Entry => '-background'],
+    [Listbox => '-background']]);
+
+checkCreateGetSet('readonly',
+   -entrybackground => 'blue',
+   [[Entry => '-background'],
+    [Button => '-background'],
+    [Listbox => '-background']]);
 
 #####################
 ## -entrywidth
@@ -119,6 +135,13 @@ checkCreateGetSet("readonly", -highlightthickness => 2, ['Frame']);
 #####################
 TestHighlight('editable');
 TestHighlight('readonly');
+
+#####################
+## -listwidth
+#####################
+checkDefaultValue(-listwidth => -1);
+TestListwidth('editable');
+TestListwidth('readonly');
 
 #####################
 ## -pady
@@ -378,6 +401,45 @@ sub TestHighlight
    is( $jcb->Subwidget('Frame')->cget(-highlightbackground), 'red');
    $mw->destroy;
 }
+
+sub TestListwidth
+{
+   my $mode = shift;
+   my $choices = [qw/one two three four five/];
+
+   ## -listwidth (-1)
+   my ($mw, $jcb) = Setup(
+      -mode => $mode,
+      -choices => $choices,
+      -listwidth => -1
+   );
+   my $popup = $jcb->Subwidget('Popup');
+   my $listbox = $jcb->Subwidget('Listbox');
+   
+   $jcb->showPopup;
+   $mw->update;
+   is($jcb->width, $popup->width);
+   $jcb->hidePopup;
+
+   ## -listwidth (0)
+   $jcb->configure(-listwidth => 0);
+   $jcb->showPopup;
+   $mw->update;
+   my $expectedWidth = $listbox->width + $popup->cget('-bd') * 2;
+   is($popup->width, $expectedWidth);
+   $jcb->hidePopup;
+
+   ## -listwidth (4)
+   $jcb->configure(-listwidth => 4);
+   $jcb->showPopup;
+   $mw->update;
+   $expectedWidth = $listbox->width + $popup->cget('-bd') * 2;
+   is($popup->width, $expectedWidth);
+   $jcb->hidePopup;
+
+   $mw->destroy;
+}
+
 
 sub TestPadY
 {

@@ -1,6 +1,56 @@
 Revision history for Perl extension Tk::JComboBox.
 
-0.01  Mon Dec 27 11:03:13 2004
-	- original version; created by h2xs 1.22 with options
-		-X Tk::JComboBox
+1.01 Bug Fix and Refactorings
+
+   - Tutorial images were excluded from distribution. Added:
+      lib/Tk/JComboBox/jcb_edit.gif
+      lib/Tk/JComboBox/jcb_ro.gif
+
+   - Updated -listwidth:
+     - Fixed the -listwidth option to work correctly in JComboBox.pm
+       the default value and conditions within the code were incorrect
+     - Updated JComboBox.pod to include default value for -listwidth
+     - added unit tests for -listwidth in 02_Options_Basic.t
+
+   - Replaced majority of "constants" using new CreateGetSet 
+     method to create a cleaner way of setting/accessing hashref keys
+     The constants were not working as desired.
+
+   - Corrected typos in tutorial.pod based on feedback from 
+     Zentara <zentara@highstream.net>
+
+   - Updated -entrybackground:
+     - Changed reference to -textbackground option to -entrybackground
+       in tutorial.pod
+     - corrected -entrybackground configuration in JComboBox::ConfigSpecs.
+     - updated description in JComboBox.pod.
+     - added unit tests in 02_Options_Basic.t
+
+   - Updated -state option: when set to 'disabled' keyboard traversal using
+     Tab was not working correctly. JComboBox should have been skipped.
+     - fixed the problem, and added unit test for option in 04+Options_Misc.t
+
+   - Dumbed down test slightly in 04_Options_Misc.t because of problems
+     with Tk in Windows 2000. Was unable to correctly generate events for
+     <Up> and <Down>. The unit tests were throwing false errors because
+     of Tk problems and not JComboBox code. Modified test to call event
+     handler directly instead of simulating <Up> or <Down> events.
+
+1.00 Major release with many changes and new features.
+
+   - HTML docs converted to POD format
+
+   - Extensive test suite added
+
+   - Updated -mode option: Now can only be set once, at construction time.
+     - documentation updated to reflect this change.
+
+   - Added -autofind option to decouple validation from a find keyboard-based
+     find capability. (see docs).
+
+   - Updated subwidget names (kept old ones for backward compatibility).
+
+0.02  Bug Fix and Refactoring 
+
+0.01  Initial Release
 
