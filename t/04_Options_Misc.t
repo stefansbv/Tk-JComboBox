@@ -27,8 +27,8 @@ my $mw = MainWindow->new;
 #####################
 ## -autofind
 #####################
-TestAutoFind('readonly');
-TestAutoFind('editable');
+TestAutoFind('readonly'); 
+TestAutoFind('editable'); 
 
 #####################
 ## -choices/options
@@ -162,11 +162,11 @@ sub TestAutoFind
    my $mode = shift;
    TestAutoFindDefaults($mode);
    TestAutoFindShowPopup($mode);
-
+   
    if ($mode eq 'editable') {
       TestAutoFindEditableSearch();
       TestAutoFindEditableSelect();
-      TestAutoFindComplete(); # -complete only affects editable mode
+      TestAutoFindComplete(); 
    }
    elsif ($mode eq 'readonly') {
       TestAutoFindReadonlySearch();
@@ -178,179 +178,196 @@ sub TestAutoFind
 
 sub TestAutoFindComplete
 {
-   my $jcb = setup('pack',
-      -autofind => {-complete => 1},
-      -choices => [qw/one two three/],
-      -mode => 'editable');
-   $mw->update;
-   my $entry = $jcb->Subwidget('Entry');
-   $entry->focusForce;
+   eval {
+      my $jcb = setup('pack',
+         -autofind => {-complete => 1},
+	 -choices => [qw/one two three/],
+         -mode => 'editable');
+      my $entry = $jcb->Subwidget('Entry');
+      $entry->focusForce;
 
-   checkListboxSelection($jcb, 'o', 0);
-   is($jcb->getSelectedIndex, -1);
-   is($jcb->getSelectedValue, 'o');
-   is($entry->get, 'one');
-   is($entry->index('sel.first'), 1);
-   is($entry->index('sel.last'), 3);
+      checkListboxSelection($jcb, 'o', 0);
+      is($jcb->getSelectedIndex, -1);
+      is($jcb->getSelectedValue, 'o');
+      is($entry->get, 'one');
+      is($entry->index('sel.first'), 1);
+      is($entry->index('sel.last'), 3);
 
-   checkListboxSelection($jcb, 'n', 0);
-   is($jcb->getSelectedIndex, -1);
-   is($jcb->getSelectedValue, 'on');
-   is($entry->get, 'one');
-   is($entry->index('sel.first'), 2);
-   is($entry->index('sel.last'), 3);
+      checkListboxSelection($jcb, 'n', 0);
+      is($jcb->getSelectedIndex, -1);
+      is($jcb->getSelectedValue, 'on');
+      is($entry->get, 'one');
+      is($entry->index('sel.first'), 2);
+      is($entry->index('sel.last'), 3);
 
-   $jcb->clearSelection;
-   checkListboxSelection($jcb, 't', 1);
-   is($jcb->getSelectedValue, 't');
-   is($entry->get, 'two');
-   is($entry->index('sel.first'), 1);
-   is($entry->index('sel.last'), 3);
-
-   checkListboxSelection($jcb, 'h', 2);
-   is($jcb->getSelectedValue, 'th');
-   is($entry->get, 'three');
-   is($entry->index('sel.first'), 2);
-   is($entry->index('sel.last'), 5);
-   $jcb->destroy;
+      $jcb->clearSelection;
+      checkListboxSelection($jcb, 't', 1);
+      is($jcb->getSelectedValue, 't');
+      is($entry->get, 'two');
+      is($entry->index('sel.first'), 1);
+      is($entry->index('sel.last'), 3);
+      
+      checkListboxSelection($jcb, 'h', 2);
+      is($jcb->getSelectedValue, 'th');
+      is($entry->get, 'three');
+      is($entry->index('sel.first'), 2);
+      is($entry->index('sel.last'), 5);
+      $jcb->destroy;
+   };
+   carp "\nFail - AutoFindComplete: " . $@ if $@;
 }
 
 sub TestAutoFindDefaults 
 {
    my $mode = shift;
-   my $jcb = setup('pack',
-      -mode => $mode,
-      -choices => [qw/one two three/]);
-   $mw->update;
-   my $entry = $jcb->Subwidget('Entry');
-   my $lb = $jcb->Subwidget('Listbox');
-   $entry->focusForce;
+   eval {
 
-   checkListboxSelection($jcb, 'o', 0);
-   is($jcb->getSelectedIndex, -1, '-select is off by default'); 
-   is($jcb->popupIsVisible, 1, '-showpopup is on by default');
-
-   checkListboxSelection($jcb, 'z', undef);
-   is($jcb->popupIsVisible, 0, 'popup should be withdrawn when no match');
-   $jcb->destroy;
+      my $jcb = setup('pack',
+         -mode => $mode,
+         -choices => [qw/one two three/]);
+      my $entry = $jcb->Subwidget('Entry');
+      my $lb = $jcb->Subwidget('Listbox');
+      $entry->focusForce;
+      
+      checkListboxSelection($jcb, 'o', 0);
+      is($jcb->getSelectedIndex, -1, '-select is off by default'); 
+      is($jcb->popupIsVisible, 1, '-showpopup is on by default');
+      
+      checkListboxSelection($jcb, 'z', undef);
+      is($jcb->popupIsVisible, 0, 'popup should be withdrawn when no match');
+      $jcb->destroy;
+   };
+   carp "\nFail - AutoFindDefaults ($mode): $@" if $@;
 }
    
 sub TestAutoFindEditableSearch
 {
-   my $choices = [qw/tWo Four SiX eiGhT twElvE tweNtY/];
-   my $jcb = setup('pack', 
-      -mode => 'editable',
-      -choices => $choices);
-   $mw->update;
-   $jcb->Subwidget('Entry')->focusForce;
+   eval {
+      my $choices = [qw/tWo Four SiX eiGhT twElvE tweNtY/];
+      my $jcb = setup('pack', 
+         -mode => 'editable',
+         -choices => $choices);
+      $jcb->Subwidget('Entry')->focusForce;
+      
+      checkListboxSelection($jcb, 't', 0);
+      checkListboxSelection($jcb, 'w', 0);
+      checkListboxSelection($jcb, 'e', 4);
+      checkListboxSelection($jcb, 'n', 5);
 
-   checkListboxSelection($jcb, 't', 0);
-   checkListboxSelection($jcb, 'w', 0);
-   checkListboxSelection($jcb, 'e', 4);
-   checkListboxSelection($jcb, 'n', 5);
-
-   checkListboxSelection($jcb, 'BackSpace', 4);
-   checkListboxSelection($jcb, 'BackSpace', 0);
-   checkListboxSelection($jcb, 'BackSpace', 0);
-   checkListboxSelection($jcb, 'BackSpace', undef);  
-   is($jcb->popupIsVisible, 0);
-   is($jcb->getSelectedIndex, -1);
+      checkListboxSelection($jcb, 'BackSpace', 4);
+      checkListboxSelection($jcb, 'BackSpace', 0);
+      checkListboxSelection($jcb, 'BackSpace', 0);
+      checkListboxSelection($jcb, 'BackSpace', undef);  
+      is($jcb->popupIsVisible, 0);
+      is($jcb->getSelectedIndex, -1);
    
-   $jcb->configure(-autofind => {-casesensitive => 1});
-   checkListboxSelection($jcb, 't', 0);
-   checkListboxSelection($jcb, 'w', 4);
-   checkListboxSelection($jcb, 'e', 5);
-   checkListboxSelection($jcb, 'n', undef);
-   is($jcb->popupIsVisible, 0);
-   $jcb->destroy;
+      $jcb->configure(-autofind => {-casesensitive => 1});
+      checkListboxSelection($jcb, 't', 0);
+      checkListboxSelection($jcb, 'w', 4);
+      checkListboxSelection($jcb, 'e', 5);
+      checkListboxSelection($jcb, 'n', undef);
+      is($jcb->popupIsVisible, 0);
+      $jcb->destroy;
+   };
+   carp "\nFail - TestAutoFindEditableSearch: $@" if $@;
 }
 
 sub TestAutoFindEditableSelect
 {
-   my $jcb = setup('pack',
-      -autofind => {-select => 1},
-      -choices => [qw/one two three/],
-      -mode => 'editable');
-   $mw->update;
-   $jcb->Subwidget('Entry')->focusForce;
-
-   checkAutoFindSelection($jcb, 't', 1, 'two');
-   checkAutoFindSelection($jcb, 'h', 2, 'three');
-   checkAutoFindSelection($jcb, 'o', -1, 'tho');
-   checkAutoFindSelection($jcb, 'BackSpace', 2, 'three');
-   checkAutoFindSelection($jcb, 'BackSpace', 1, 'two');
-   $jcb->destroy;
+   eval {
+      my $jcb = setup('pack',
+         -autofind => {-select => 1},
+         -choices => [qw/one two three/],
+         -mode => 'editable');
+      $jcb->Subwidget('Entry')->focusForce;
+      
+      checkAutoFindSelection($jcb, 't', 1, 'two');
+      checkAutoFindSelection($jcb, 'h', 2, 'three');
+      checkAutoFindSelection($jcb, 'o', -1, 'tho');
+      checkAutoFindSelection($jcb, 'BackSpace', 2, 'three');
+      checkAutoFindSelection($jcb, 'BackSpace', 1, 'two');
+      $jcb->destroy;
+   };
+   carp "\nFail - TestAutoFindEditableSelect: $@" if $@;
 }
 
 sub TestAutoFindReadonlySearch()
 {
-   my $choices = [qw/tWo Four SiX eiGhT TeN twElvE/];
+   eval {
 
-   ## First try it with default autofind settings
-   ## which is not case senstive.
-   my $jcb = setup('pack', -choices => $choices);
-   $mw->update;
-   $jcb->Subwidget('Entry')->focusForce;
+      my $choices = [qw/tWo Four SiX eiGhT TeN twElvE/];
+      
+      ## First try it with default autofind settings
+      ## which is not case senstive.
+      my $jcb = setup('pack', -choices => $choices);
+      $jcb->Subwidget('Entry')->focusForce;
 
-   checkListboxSelection($jcb, 't', 0);
-   checkListboxSelection($jcb, 't', 4);
-   checkListboxSelection($jcb, 't', 5);
-   checkListboxSelection($jcb, 't', 0); 
-   $jcb->destroy;
+      checkListboxSelection($jcb, 't', 0);
+      checkListboxSelection($jcb, 't', 4);
+      checkListboxSelection($jcb, 't', 5);
+      checkListboxSelection($jcb, 't', 0); 
+      $jcb->destroy;
 
-   $jcb = setup('pack', 
-      -choices => $choices,
-      -autofind => { -casesensitive => 1 });
-   $mw->update;
-   $jcb->Subwidget('Entry')->focusForce;
+      $jcb = setup('pack', 
+         -choices => $choices,
+         -autofind => { -casesensitive => 1 });
+      $jcb->Subwidget('Entry')->focusForce;
 
-   checkListboxSelection($jcb, 't', 0);
-   checkListboxSelection($jcb, 't', 5);
-   checkListboxSelection($jcb, 't', 0);
-   checkListboxSelection($jcb, 'T', 4); 
-   $jcb->destroy;
+      checkListboxSelection($jcb, 't', 0);
+      checkListboxSelection($jcb, 't', 5);
+      checkListboxSelection($jcb, 't', 0);
+      checkListboxSelection($jcb, 'T', 4); 
+      $jcb->destroy;
+   };
+   carp "\nFail - TestAutoFindReadonlySearch: $@" if $@;
 }   
 
 sub TestAutoFindReadonlySelect
 {
-   my $jcb = setup('pack',
-      -autofind => {-select => 1},
-      -choices => [qw/one two three four/]);
-   $mw->update;
-   $jcb->Subwidget('Entry')->focusForce;
-
-   checkAutoFindSelection($jcb, 'f', 3, 'four');
-   checkAutoFindSelection($jcb, 't', 1, 'two');
-   checkAutoFindSelection($jcb, 't', 2, 'three');
-   checkAutoFindSelection($jcb, 't', 1, 'two');
-   checkAutoFindSelection($jcb, 'o', 0, 'one');
-   $jcb->destroy;
+   eval {
+      my $jcb = setup('pack',
+         -autofind => {-select => 1},
+         -choices => [qw/one two three four/]);
+      $jcb->Subwidget('Entry')->focusForce;
+      
+      checkAutoFindSelection($jcb, 'f', 3, 'four');
+      checkAutoFindSelection($jcb, 't', 1, 'two');
+      checkAutoFindSelection($jcb, 't', 2, 'three');
+      checkAutoFindSelection($jcb, 't', 1, 'two');
+      checkAutoFindSelection($jcb, 'o', 0, 'one');
+      $jcb->destroy;
+   };
+   carp "\nFail - TestAutoFindReadonlySelect: $@" if $@;
 }
 
 sub TestAutoFindShowPopup
 {
    my $mode = shift;
-   my $jcb = setup('pack',
-      -mode => $mode,
-      -autofind => { -showpopup => 1 }, 
-      -choices => ['one']);
-   $mw->update;
-   $jcb->Subwidget('Entry')->focusForce;
 
-   checkListboxSelection($jcb, 'o', 0);
-   is($jcb->popupIsVisible, 1);
-   $jcb->destroy;
+   eval {
+      my $jcb = setup('pack',
+         -mode => $mode,
+         -autofind => { -showpopup => 1 }, 
+         -choices => ['one']);
+      $mw->update;
+      $jcb->Subwidget('Entry')->focusForce;
 
-   $jcb = setup('pack',
-      -mode => $mode,
-      -autofind => {-showpopup => 0},
-      -choices => ['one']);
-   $mw->update;
-   $jcb->Subwidget('Entry')->focusForce;
+      checkListboxSelection($jcb, 'o', 0);
+      is($jcb->popupIsVisible, 1);
+      $jcb->destroy;
+
+      $jcb = setup('pack',
+         -mode => $mode,
+	 -autofind => {-showpopup => 0},
+	 -choices => ['one']);
+      $mw->update;
+      $jcb->Subwidget('Entry')->focusForce;
   
-   checkListboxSelection($jcb, 'o', 0);
-   is($jcb->popupIsVisible, 0);
-   $jcb->destroy;
+      checkListboxSelection($jcb, 'o', 0);
+      is($jcb->popupIsVisible, 0);
+      $jcb->destroy;
+   };
+   carp "\nFail - TestAutoFindShowPopup($mode): $@" if $@;
 }
 
 ###############################################
@@ -365,58 +382,64 @@ sub TestChoices
 
 sub TestCgetChoices 
 { 
-   my $option = shift;
-   my $jcb = setup($option, [qw/one two/]);
-   my $list = $jcb->cget($option);
+   eval {
+      my $option = shift;
+      my $jcb = setup($option, [qw/one two/]);
+      my $list = $jcb->cget($option);
 
-   is($list->[0]->{'-name'}, $jcb->getItemNameAt(0));
-   is($list->[0]->{'-value'}, $jcb->getItemValueAt(0));
-   is($list->[1]->{'-name'}, $jcb->getItemNameAt(1));
-   is($list->[1]->{'-value'}, $jcb->getItemValueAt(1));
+      is($list->[0]->{'-name'}, $jcb->getItemNameAt(0));
+      is($list->[0]->{'-value'}, $jcb->getItemValueAt(0));
+      is($list->[1]->{'-name'}, $jcb->getItemNameAt(1));
+      is($list->[1]->{'-value'}, $jcb->getItemValueAt(1));
 
-   $jcb->configure($option, 
-      [{qw/-name one -value 1/},
-      {qw/-name two -value 2 -selected 1/}]);                          
-   $list = $jcb->cget($option);         
+      $jcb->configure($option, 
+         [{qw/-name one -value 1/},
+	  {qw/-name two -value 2 -selected 1/}]);                          
+      $list = $jcb->cget($option);         
  
-   is($list->[0]->{'-name'}, $jcb->getItemNameAt(0));
-   is($list->[0]->{'-value'}, $jcb->getItemValueAt(0));
-   is($list->[1]->{'-name'}, $jcb->getItemNameAt(1));
-   is($list->[1]->{'-value'}, $jcb->getItemValueAt(1));                 
-   is($list->[1]->{'-selected'}, $jcb->getSelectedIndex);
+      is($list->[0]->{'-name'}, $jcb->getItemNameAt(0));
+      is($list->[0]->{'-value'}, $jcb->getItemValueAt(0));
+      is($list->[1]->{'-name'}, $jcb->getItemNameAt(1));
+      is($list->[1]->{'-value'}, $jcb->getItemValueAt(1));                 
+      is($list->[1]->{'-selected'}, $jcb->getSelectedIndex);
+   };
+   carp "\nFail - TestCgetChoices: $@" if $@;
 }
 
 sub TestConfigureChoices{
-   my $option = shift;
-   my $jcb = setup($option, [qw/one two/]);
-   is($jcb->getItemNameAt(0), "one");
-   is($jcb->getItemNameAt(1), "two");
-   is($jcb->getItemValueAt(0), "one");
-   is($jcb->getItemValueAt(1), "two");
-   is($jcb->getSelectedIndex(), -1);
+   eval {
+      my $option = shift;
+      my $jcb = setup($option, [qw/one two/]);
+      is($jcb->getItemNameAt(0), "one");
+      is($jcb->getItemNameAt(1), "two");
+      is($jcb->getItemValueAt(0), "one");
+      is($jcb->getItemValueAt(1), "two");
+      is($jcb->getSelectedIndex(), -1);
 
-   $jcb->configure($option,
-      [{-name => "three", -value => 3, -selected => 1},
-       {-name => "four",  -value => 4, -selected => 1}]);
+      $jcb->configure($option,
+         [{-name => "three", -value => 3, -selected => 1},
+	  {-name => "four",  -value => 4, -selected => 1}]);
    
-   is($jcb->getItemCount, 2);
-   is($jcb->getItemNameAt(0), "three");
-   is($jcb->getItemNameAt(1), "four");
-   is($jcb->getItemValueAt(0), 3);
-   is($jcb->getItemValueAt(1), 4);
-   is($jcb->getSelectedIndex(), 1);
+      is($jcb->getItemCount, 2);
+      is($jcb->getItemNameAt(0), "three");
+      is($jcb->getItemNameAt(1), "four");
+      is($jcb->getItemValueAt(0), 3);
+      is($jcb->getItemValueAt(1), 4);
+      is($jcb->getSelectedIndex(), 1);
 
-   $jcb->configure($option,
-      ["five", {-name => "six", -value => 6}]);
-   $jcb->setSelectedIndex(0);
+      $jcb->configure($option,
+         ["five", {-name => "six", -value => 6}]);
+      $jcb->setSelectedIndex(0);
 
-   is($jcb->getItemCount, 2);
-   is($jcb->getItemNameAt(0), "five");
-   is($jcb->getItemNameAt(1), "six");
-   is($jcb->getItemValueAt(0), "five");
-   is($jcb->getItemValueAt(1), 6);
-   is($jcb->getSelectedIndex(), 0); 
-   $jcb->destroy;
+      is($jcb->getItemCount, 2);
+      is($jcb->getItemNameAt(0), "five");
+      is($jcb->getItemNameAt(1), "six");
+      is($jcb->getItemValueAt(0), "five");
+      is($jcb->getItemValueAt(1), 6);
+      is($jcb->getSelectedIndex(), 0); 
+      $jcb->destroy;
+   };
+   carp "\nFail - TestConfigureChoices: $@" if $@;
 }
   
 ######################################################################
@@ -438,30 +461,31 @@ sub TestListhighlight
 sub TestListhighlightMotion
 {
    my $mode = shift;
-   my $jcb = setup('pack',
-      -mode => $mode,
-      -choices => [qw/one two three/],
-      -listhighlight => 0
-   );
-   $mw->update;
+   eval {
+      my $jcb = setup('pack',
+         -mode => $mode,
+         -choices => [qw/one two three/],
+         -listhighlight => 0
+      );
 
-   my $b = $jcb->Subwidget('Button');
-   my $lb = $jcb->Subwidget('Listbox');
+      my $b = $jcb->Subwidget('Button');
+      my $lb = $jcb->Subwidget('Listbox');
 
-   $b->eventGenerate('<ButtonPress-1>');
-   $b->eventGenerate('<ButtonRelease-1>');
-   $mw->update;
+      $b->eventGenerate('<ButtonPress-1>');
+      $b->eventGenerate('<ButtonRelease-1>');
+      $mw->update;
+      
+      checkMotionOnIndex($lb, 0, undef);
+      checkMotionOnIndex($lb, 1, undef);
+      checkMotionOnIndex($lb, 2, undef);
 
-   checkMotionOnIndex($lb, 0, undef);
-   checkMotionOnIndex($lb, 1, undef);
-   checkMotionOnIndex($lb, 2, undef);
-
-   $jcb->configure(-listhighlight => 1);
-   checkMotionOnIndex($lb, 0, 0);
-   checkMotionOnIndex($lb, 1, 1);
-   checkMotionOnIndex($lb, 2, 2);
- 
-   $jcb->destroy;
+      $jcb->configure(-listhighlight => 1);
+      checkMotionOnIndex($lb, 0, 0);
+      checkMotionOnIndex($lb, 1, 1);
+      checkMotionOnIndex($lb, 2, 2);
+      $jcb->destroy;
+   };
+   carp "\nFail - TestListhighlightMotion($mode): $@" if $@;
 } 
 
 ######################################################################
@@ -469,25 +493,27 @@ sub TestListhighlightMotion
 ######################################################################
 sub TestMaxRows
 {
-   checkCreateGetSet("readonly", -maxrows => 4);
-   checkCreateGetSet("editable", -maxrows => 4);
+   eval {
+      checkCreateGetSet("readonly", -maxrows => 4);
+      checkCreateGetSet("editable", -maxrows => 4);
 
-   my $jcb = setup('pack',
-      -choices => [qw/one two three four five six seven eight/]);
-   $mw->update;
-   my $lb = $jcb->Subwidget('Listbox');
-   $jcb->showPopup;
-   $jcb->hidePopup;
+      my $jcb = setup('pack',
+         -choices => [qw/one two three four five six seven eight/]);
+      my $lb = $jcb->Subwidget('Listbox');
+      $jcb->showPopup;
+      $jcb->hidePopup;
 
-   is($jcb->cget(-maxrows), 10);
-   is($lb->cget(-height), 8);
+      is($jcb->cget('-maxrows'), 10);
+      is($lb->cget('-height'), 8);
 
-   $jcb->configure(-maxrows => 2);
-   is($lb->cget(-height), 2);
+      $jcb->configure(-maxrows => 2);
+      is($lb->cget('-height'), 2);
 
-   $jcb->configure(-maxrows => 9);
-   is($lb->cget(-height), 8);
-   $jcb->destroy;
+      $jcb->configure(-maxrows => 9);
+      is($lb->cget('-height'), 8);
+      $jcb->destroy;
+   };
+   carp "\nFail - TestMaxRows: $@" if $@;
 }
 
 sub TestState
@@ -495,71 +521,71 @@ sub TestState
    my $mode = shift;
    my $w;
 
-   my $b1 = $mw->Button(-text => 'one')->pack;
-   my $jcb = $mw->JComboBox(
-      -entrywidth => 10,
-      -mode => $mode,
-      -state => 'normal'
-   )->pack;
-   my $b2 = $mw->Button(-text => 'two')->pack;
-   $mw->update;
-   $b1->focusForce;
+   eval {
+      my $b1 = $mw->Button(-text => 'one')->pack;
+      my $jcb = $mw->JComboBox(
+         -entrywidth => 10,
+         -mode => $mode,
+	 -state => 'normal'
+      )->pack;
+      my $b2 = $mw->Button(-text => 'two')->pack;
+      $mw->update;
+      $b1->focusForce;
 
-   $b1->focusNext;
-   $w = $mw->focusCurrent;
-   is(ref($w), 'Tk::Entry') if $mode eq 'editable';
-   is(ref($w), 'Tk::Label') if $mode eq 'readonly';
+      $b1->focusNext;
+      $w = $mw->focusCurrent;
+      is(ref($w), 'Tk::Entry') if $mode eq 'editable';
+      is(ref($w), 'Tk::Label') if $mode eq 'readonly';
 
-   $w->focusNext;
-   $w = $mw->focusCurrent;
-   is(ref($w), 'Tk::Button');
-   is($w->cget('-text'), 'two');
+      $w->focusNext;
+      $w = $mw->focusCurrent;
+      is(ref($w), 'Tk::Button');
+      is($w->cget('-text'), 'two');
 
-
-   $jcb->configure(-state => 'disabled');
-
-   $b1->focusForce;
-   $b1->focusNext;
-   $w = $mw->focusCurrent;
-   is(ref($w), 'Tk::Button');
-   is($w->cget('-text'), 'two');
-
-   foreach ($b1, $jcb, $b2) { $_->destroy; }
+      $jcb->configure(-state => 'disabled');
+      
+      $b1->focusForce;
+      $b1->focusNext;
+      $w = $mw->focusCurrent;
+      is(ref($w), 'Tk::Button');
+      is($w->cget('-text'), 'two');
+      foreach ($b1, $jcb, $b2) { $_->destroy; }
+   };
+   carp "\nFail - TestState($mode): $@" if $@;
 }
 
 
 sub TestUpDownSelect
 {
    my $mode = shift;
-   checkCreateGetSet($mode, -updownselect => 0);
+   eval {
+      checkCreateGetSet($mode, -updownselect => 0);
       
-   my $jcb = setup('pack',   
-      -choices => [qw/one two three/],
-      -mode => $mode,
-      -updownselect => 1
-   );
- 
-   $jcb->Subwidget('Entry')->focusForce;
-   $mw->update;
+      my $jcb = setup('pack',   
+         -choices => [qw/one two three/],
+         -mode => $mode,
+         -updownselect => 1
+      );
+      $jcb->Subwidget('Entry')->focusForce;
+      $mw->update;
 
-   checkUpDownSelection($jcb, '<Down>', 0, 'one');
-   checkUpDownSelection($jcb, '<Down>', 1, 'two');
-   checkUpDownSelection($jcb, '<Down>', 2, 'three');
-   checkUpDownSelection($jcb, '<Down>', 2, 'three'); ## Limit to last item
-   checkUpDownSelection($jcb, '<Up>', 1, 'two');
-   checkUpDownSelection($jcb, '<Up>', 0, 'one');
-   checkUpDownSelection($jcb, '<Up>', 0, 'one');   ## Limit to first item
+      checkUpDownSelection($jcb, '<Down>', 0, 'one');
+      checkUpDownSelection($jcb, '<Down>', 1, 'two');
+      checkUpDownSelection($jcb, '<Down>', 2, 'three');
+      checkUpDownSelection($jcb, '<Down>', 2, 'three'); 
+      checkUpDownSelection($jcb, '<Up>', 1, 'two');
+      checkUpDownSelection($jcb, '<Up>', 0, 'one');
+      checkUpDownSelection($jcb, '<Up>', 0, 'one');  
 
-   $jcb->configure(-updownselect => 0);
-   $jcb->setSelectedIndex(1);
-   is( $jcb->getSelectedIndex(), 1);
-   checkUpDownSelection($jcb, '<Down>', 1, 'two'); ## Should be unchanged
-   checkUpDownSelection($jcb, '<Up>', 1, 'two');   ## Should be unchanged
-
-   $jcb->destroy;
+      $jcb->configure(-updownselect => 0);
+      $jcb->setSelectedIndex(1);
+      is( $jcb->getSelectedIndex(), 1);
+      checkUpDownSelection($jcb, '<Down>', 1, 'two'); 
+      checkUpDownSelection($jcb, '<Up>', 1, 'two');   
+      $jcb->destroy;
+   };
+   carp "\nFail - TestUpDownSelect($mode): $@" if $@;
 }
-
-
 
 __END__
 

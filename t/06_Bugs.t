@@ -29,20 +29,24 @@ TestItemVisibleAfterAutoFind("editable");
 sub TestItemVisibleAfterAutoFind
 {
    my $mode = shift;
-   my @list = (qw/alpha bravo charlie delta echo foxtrot golf hotel india/);
+   eval {
+      my @list = 
+         (qw/alpha bravo charlie delta echo foxtrot golf hotel india/);
    
-   my $jcb = $mw->JComboBox(
-      -choices => \@list,
-      -maxrows => 4,
-      -mode => $mode
-   )->pack;
-   $mw->update;
+      my $jcb = $mw->JComboBox(
+         -choices => \@list,
+         -maxrows => 4,
+         -mode => $mode
+      )->pack;
+      $mw->update;
 
-   checkItemVisibility($jcb, "a", 0);
-   checkItemVisibility($jcb, "i", 8);
-   checkItemVisibility($jcb, "e", 4);
-   checkItemVisibility($jcb, "a", 0);
-   $jcb->destroy;
+      checkItemVisibility($jcb, "a", 0);
+      checkItemVisibility($jcb, "i", 8);
+      checkItemVisibility($jcb, "e", 4);
+      checkItemVisibility($jcb, "a", 0);
+      $jcb->destroy;
+   };
+   carp "\nFail - TestItemVisibleAfterAutoFind($mode): $@" if $@;
 }
 
 sub checkItemVisibility 

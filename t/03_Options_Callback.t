@@ -32,6 +32,7 @@ TestButtonCommand('editable', [1, 2, 2]);
 
 #####################
 ## -keycommand 
+      my $unexpectedOption = 0;
 #####################
 TestKeyCommand("readonly");
 TestKeyCommand("editable");
@@ -60,6 +61,9 @@ TestSelectCommand('readonly');
 ###################################
 TestValidation();
 
+## Cleanup
+$mw->destroy;
+
 ############################################################
 ## Test Subroutines
 ############################################################
@@ -68,227 +72,240 @@ sub TestButtonCommand
 {
    my ($mode, $resultsAR) = @_;
 
-   my $cmdCalled = 0; 
-   my $jcb = Setup(qw/pack -mode/, $mode);
-   $jcb->pack;
+   eval {
+      my $cmdCalled = 0; 
+      my $jcb = Setup(qw/pack -mode/, $mode);
+      $jcb->pack;
 
-   $jcb->configure(-buttoncommand => sub {
-      my ($jcb, $selection) = @_;
-      is(ref($jcb), "Tk::JComboBox");
-      is($selection, -1);
-      $cmdCalled++;
-   });
-   $jcb->update;
+      $jcb->configure(-buttoncommand => sub {
+         my ($jcb, $selection) = @_;
+	 is(ref($jcb), "Tk::JComboBox");
+	 is($selection, -1);
+	 $cmdCalled++;
+      });
+      $jcb->update;
 
-   ## Directly invoke Event Handlers
-   $jcb->ButtonDown;
-   $jcb->ButtonUp;
-   is($cmdCalled, $resultsAR->[0]);
+      ## Directly invoke Event Handlers
+      $jcb->ButtonDown;
+      $jcb->ButtonUp;
+      is($cmdCalled, $resultsAR->[0]);
 
-   ## Simulate events
-   my $b = $jcb->Subwidget('Button');
-   my $e = $jcb->Subwidget('Entry');
+      ## Simulate events
+      my $b = $jcb->Subwidget('Button');
+      my $e = $jcb->Subwidget('Entry');
 
-   $b->eventGenerate('<ButtonPress-1>');
-   $b->eventGenerate('<ButtonRelease-1>');
-   $jcb->update;
-   is($cmdCalled, $resultsAR->[1]);
+      $b->eventGenerate('<ButtonPress-1>');
+      $b->eventGenerate('<ButtonRelease-1>');
+      $jcb->update;
+      is($cmdCalled, $resultsAR->[1]);
 
-   $e->eventGenerate('<ButtonPress-1>');
-   $e->eventGenerate('<ButtonRelease-1>');
-   $jcb->update;
-   is($cmdCalled, $resultsAR->[2]);
-   $jcb->destroy;
+      $e->eventGenerate('<ButtonPress-1>');
+      $e->eventGenerate('<ButtonRelease-1>');
+      $jcb->update;
+      is($cmdCalled, $resultsAR->[2]);
+      $jcb->destroy;
+   };
+   carp "\nFail - TestButtonCommand($mode): $@" if $@;
 }
 
 sub TestCreateModifyPopup
 {
    my $mode = shift;
-   my $jcb = Setup('pack',
-      -mode => $mode,
-      -choices => [qw/one/]);
-   $mw->update;
+   eval {
+      my $jcb = Setup('pack',
+         -mode => $mode,
+         -choices => [qw/one/]);
+      $mw->update;
 
-   my $cb = 0;
-   $jcb->configure(
-      -popupcreate => sub {$cb++},
-      -popupmodify => sub {$cb++});
+      my $cb = 0;
+      $jcb->configure(
+         -popupcreate => sub {$cb++},
+         -popupmodify => sub {$cb++});
 
-   my $button = $jcb->Subwidget('Button');
-   $button->eventGenerate('<ButtonPress-1>');
-   $jcb->hidePopup;
-   $mw->update;
-   is($cb, 1, 'both -popupcreate/-popupmodify configured - one gets called');
+      my $button = $jcb->Subwidget('Button');
+      $button->eventGenerate('<ButtonPress-1>');
+      $jcb->hidePopup;
+      $mw->update;
+      is($cb, 1);
   
-   $jcb->configure(-popupcreate => sub { $cb++; $jcb->PopupCreate;});
-   $button->eventGenerate('<ButtonPress-1>');
-   $mw->update;
-   is($cb, 3, 'both -popupcreate/-popupmodify configured - both called');
-   $jcb->destroy;
+      $jcb->configure(-popupcreate => sub { $cb++; $jcb->PopupCreate;});
+      $button->eventGenerate('<ButtonPress-1>');
+      $mw->update;
+      is($cb, 3, 'both -popupcreate/-popupmodify configured - both called');
+      $jcb->destroy;
+   };
+   carp "\nFail - TestCreateModifyPopup($mode): $@" if $@;
 }
   
 sub TestKeyCommand
 {
    my $mode = shift;
-   my $uChar;
-   my $key;
-   my $cb = 0;
+   eval {
+      my $uChar;
+      my $key;
+      my $cb = 0;
 
-   my $jcb = Setup('pack',
-      -mode => $mode,
-      -keycommand => sub {
-         $uChar = $_[1];
-         $key = $_[2];
-         $cb++;
-      }
-   );
-   $mw->update;
-   my $e = $jcb->Subwidget('Entry');
-   $e->focusForce;
-   $e->eventGenerate('<KeyPress>', -keysym => 'a');
+      my $jcb = Setup('pack',
+         -mode => $mode,
+         -keycommand => sub {
+	    $uChar = $_[1];
+	    $key = $_[2];
+	    $cb++;
+	 }
+      );
+      my $e = $jcb->Subwidget('Entry');
+      $e->focusForce;
+      $e->eventGenerate('<KeyPress>', -keysym => 'a');
 
-   is($cb, 1, 'KeyCommand called');
-   is($uChar, 'a', 'uChar correctly passed');
-   is($key, 'a', 'key correctly passed');
-   $jcb->destroy;
+      is($cb, 1, 'KeyCommand called');
+      is($uChar, 'a', 'uChar correctly passed');
+      is($key, 'a', 'key correctly passed');
+      $jcb->destroy;
+   };
+   carp "\nFail - TestKeyCommand($mode): $@" if $@;
 }
 
 sub TestPopup
 {
    my ($type, $mode) = @_;
-   my $cb = 0;
+   eval {
+      my $cb = 0;
 
-   my $jcb = Setup('pack',
-      -mode => $mode,
-     "-popup$type", sub { $cb++; }
-   );
-   $mw->update;
+      my $jcb = Setup('pack',
+         -mode => $mode,
+        "-popup$type", sub { $cb++; }
+      );
+      $jcb->showPopup;
+      $jcb->hidePopup;
+      is($cb, 0, "-popup$type not called, when there are no items");
 
-   $jcb->showPopup;
-   $jcb->hidePopup;
-   is($cb, 0, "-popup$type not called, when there are no items");
+      my $button = $jcb->Subwidget('Button');
+      $button->eventGenerate('<ButtonPress-1>');
+      $jcb->hidePopup;
+      $mw->update;
+      is($cb, 0, "-popup$type not called, when there are no items");
 
-   my $button = $jcb->Subwidget('Button');
-   $button->eventGenerate('<ButtonPress-1>');
-   $jcb->hidePopup;
-   $mw->update;
-   is($cb, 0, "-popup$type not called, when there are no items");
+      ## Add one item to the combobox 
+      $jcb->addItem("one");
 
-   ## Add one item to the combobox 
-   $jcb->addItem("one");
-
-   $jcb->showPopup;
-   is($cb, 1, "-popup$type - configured, items, popup invisible");
+      $jcb->showPopup;
+      is($cb, 1, "-popup$type - configured, items, popup invisible");
    
-   $jcb->showPopup;
-   $jcb->hidePopup;
-   is($cb, 1, "-popup$type not called when popup is visible");
+      $jcb->showPopup;
+      $jcb->hidePopup;
+      is($cb, 1, "-popup$type not called when popup is visible");
  
-   $button->eventGenerate('<ButtonPress-1>');
-   $mw->update;
-   is($cb, 2, "-popup$type called from <ButtonPress-1>");
+      $button->eventGenerate('<ButtonPress-1>');
+      $mw->update;
+      is($cb, 2, "-popup$type called from <ButtonPress-1>");
 
-   $button->eventGenerate('<ButtonPress-1>');
-   $jcb->hidePopup;
-   $mw->update;
-   is($cb, 2, "-popup$type not called when popup is visible");
-
-   $jcb->destroy;
+      $button->eventGenerate('<ButtonPress-1>');
+      $jcb->hidePopup;
+      $mw->update;
+      is($cb, 2, "-popup$type not called when popup is visible");
+      $jcb->destroy;
+   };
+   carp "\nFail - TestPopup($mode): $@" if $@;
 }
 
 sub TestSelectCommand 
 {
    my $mode = shift;
-   my ($w, $selIndex, $selName, $selValue);
-   my $cb = 0;
-   my $jcb = Setup('pack',
-      -mode => $mode,
-      -choices => [qw/one two three/],
-      -selectcommand => sub {
-         ($w, $selIndex, $selName, $selValue) = @_;
-         $cb++;
-   });
-   $jcb->addItem('four', -value => 4);
-   $mw->update;
+   eval {
+      my ($w, $selIndex, $selName, $selValue);
+      my $cb = 0;
+      my $jcb = Setup('pack',
+         -mode => $mode,
+         -choices => [qw/one two three/],
+         -selectcommand => sub {
+            ($w, $selIndex, $selName, $selValue) = @_;
+            $cb++;
+	 });
+      $jcb->addItem('four', -value => 4);
+      $mw->update;
 
-   ## 1) Test that selectcommand is triggered by setSelectedIndex
-   ##    method call.
-   $jcb->setSelectedIndex(0);
-   is($cb, 1, 'Verify that -selectcommand callback was called');
-   is($selIndex, 0, 'verify that index 0 was passed to callback');
-   is($selName, 'one', 'verify that "one" (name) was selected');
-   is($selValue, 'one', 'verify that "one"(value) was selected');
-   $cb = 0;
+      ## 1) Test that selectcommand is triggered by setSelectedIndex
+      ##    method call.
+      $jcb->setSelectedIndex(0);
+      is($cb, 1, 'Verify that -selectcommand callback was called');
+      is($selIndex, 0, 'verify that index 0 was passed to callback');
+      is($selName, 'one', 'verify that "one" (name) was selected');
+      is($selValue, 'one', 'verify that "one"(value) was selected');
+      $cb = 0;
 
-   ## 2) Test that selectcommand is not triggered when selection is set 
-   ## that matches existing selection.
-   $jcb->setSelectedIndex(0);
-   is($cb, 0, '-selectcommand triggered by duplicate selection');
+      ## 2) Test that selectcommand is not triggered when selection is set 
+      ## that matches existing selection.
+      $jcb->setSelectedIndex(0);
+      is($cb, 0, '-selectcommand triggered by duplicate selection');
    
-   ## 3) Test that selectcommand is triggered when setSelected method is
-   ## is called.
-   $jcb->setSelected('four');
-   is($cb, 1, 'verify that -selectcommand callback was called');
-   is($selIndex, 3, 'verify that index 3 was passed');
-   is($selName, 'four');
-   is($selValue, '4');
-   $jcb->clearSelection;
-   $cb = 0;
+      ## 3) Test that selectcommand is triggered when setSelected method is
+      ## is called.
+      $jcb->setSelected('four');
+      is($cb, 1, 'verify that -selectcommand callback was called');
+      is($selIndex, 3, 'verify that index 3 was passed');
+      is($selName, 'four');
+      is($selValue, '4');
+      $jcb->clearSelection;
+      $cb = 0;
 
-   ## TODO: This test routine should probably be expanded to include
-   ## event handling.
+      ## TODO: This test routine should probably be expanded to include
+      ## event handling.
+   };
+   carp "\nFail - TestSelectCommand($mode): $@" if $@;
 }
 
 sub TestValidation
 {
    my $cb = 0;
    my $letter;
+   eval {
 
-   my $jcb = Setup('pack',
-      -mode => 'editable',
-      -validate => 'key',
-      -validatecommand => sub {
-         $letter = $_[1]; 
-         $cb++;
-         return 1;
-      }
-   );
-   my $entry = $jcb->Subwidget('Entry');
-   $entry->focusForce;
-   $mw->update;
+      my $jcb = Setup('pack',
+         -mode => 'editable',
+         -validate => 'key',
+         -validatecommand => sub {
+            $letter = $_[1]; 
+            $cb++;
+            return 1;
+         }
+      );
+      my $entry = $jcb->Subwidget('Entry');
+      $entry->focusForce;
+      $mw->update;
 
-   $entry->eventGenerate('<KeyPress>', -keysym => 'a');
-   is($cb, 1, 'validatecommand should have been called');
-   is($letter, 'a', 'validatecommand was called because of "a"');
-   $jcb->destroy;
+      $entry->eventGenerate('<KeyPress>', -keysym => 'a');
+      is($cb, 1, 'validatecommand should have been called');
+      is($letter, 'a', 'validatecommand was called because of "a"');
+      $jcb->destroy;
 
-   $jcb = Setup('pack',
-      -mode => 'editable',
-      -choices => [qw/oNe tWo tHree/],
-      -validate => 'match'
-   );
-   $mw->update;
-   $entry = $jcb->Subwidget('Entry');
-   $entry->focusForce;
+      $jcb = Setup('pack',
+         -mode => 'editable',
+         -choices => [qw/oNe tWo tHree/],
+         -validate => 'match'
+      );
+      $entry = $jcb->Subwidget('Entry');
+      $entry->focusForce;
    
-   $entry->eventGenerate('<KeyPress>', -keysym => 'o');
-   $entry->eventGenerate('<KeyPress>', -keysym => 'n');
-   $entry->eventGenerate('<KeyPress>', -keysym => 'e');
-   $mw->update;
-   is($jcb->getSelectedValue, 'one');
+      $entry->eventGenerate('<KeyPress>', -keysym => 'o');
+      $entry->eventGenerate('<KeyPress>', -keysym => 'n');
+      $entry->eventGenerate('<KeyPress>', -keysym => 'e');
+      $mw->update;
+      is($jcb->getSelectedValue, 'one');
   
-   $entry->eventGenerate('<KeyPress>', -keysym => 't');
-   $mw->update;
-   is($jcb->getSelectedValue, 'one');
-
-   $entry->delete(0, 'end');
-   $jcb->configure(-validate => 'cs-match');
-   $entry->eventGenerate('<KeyPress>', -keysym => 'o');
-   $entry->eventGenerate('<KeyPress>', -keysym => 'n');
-   $entry->eventGenerate('<KeyPress>', -keysym => 'e');
-   $mw->update;
-   is($jcb->getSelectedValue, 'o');
-   $jcb->destroy;
+      $entry->eventGenerate('<KeyPress>', -keysym => 't');
+      $mw->update;
+      is($jcb->getSelectedValue, 'one');
+      
+      $entry->delete(0, 'end');
+      $jcb->configure(-validate => 'cs-match');
+      $entry->eventGenerate('<KeyPress>', -keysym => 'o');
+      $entry->eventGenerate('<KeyPress>', -keysym => 'n');
+      $entry->eventGenerate('<KeyPress>', -keysym => 'e');
+      $mw->update;
+      is($jcb->getSelectedValue, 'o');
+      $jcb->destroy;
+   };
+   carp "\nFail - TestValidation: $@" if $@;
 }
 
 
@@ -300,7 +317,10 @@ sub Setup
       $pack = 1;
     }
    my $jcb = $mw->JComboBox(@_);
-   $jcb->pack if $pack;
+   if ($pack) {
+      $jcb->pack;
+      $mw->update;
+   }
    return $jcb;
 }
 

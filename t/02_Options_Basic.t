@@ -45,6 +45,8 @@ use Tk::Font;
 use Tk::JComboBox;
 use Test::More tests => 219;
 
+my $mw = MainWindow->new();
+
 ####################################################
 ## Appearance-related Options
 ####################################################
@@ -175,7 +177,7 @@ checkCreateGetSet('editable',
 
 checkCreateGetSet('readonly',
    -selectforeground => 'blue',
-   ['Listbox']);
+  ['Listbox']);
 
 #####################
 ## -selectborderwidth
@@ -200,6 +202,9 @@ TestTakeFocus('editable');
 TestTextVariable('readonly');
 TestTextVariable('editable');
 
+## CleanUp
+$mw->destroy;
+
 ############################################################
 ## Test Subroutines
 ############################################################
@@ -207,62 +212,72 @@ TestTextVariable('editable');
 sub checkCreateGetSet 
 {
    my ($mode, $name, $value, $swAR) = @_;
-   my ($mw, $w) = Setup(-mode => $mode, $name, $value);
-   is($w->cget($name), $value);
-   checkSubwidgetOption($w, $name, $value, $swAR);	
-   $w->destroy;
+   eval {
+      my $w = Setup(-mode => $mode, $name, $value);
+      is($w->cget($name), $value);
+      checkSubwidgetOption($w, $name, $value, $swAR);	
+      $w->destroy;
 
-   $w = $mw->JComboBox(-mode => $mode);
-   $w->configure($name, $value);
-   is($w->cget($name), $value);
-   checkSubwidgetOption($w, $name, $value, $swAR);
-   $mw->destroy;
+      $w = Setup(-mode => $mode);
+      $w->configure($name, $value);
+      is($w->cget($name), $value);
+      checkSubwidgetOption($w, $name, $value, $swAR);
+      $w->destroy;
+   };
+   carp "\nFail - checkCreateGetSet($mode,$name,$value): $@" if $@;
 }
 
 sub checkDescendantsForOption
 {
    my ($jcb, $name, $value) = @_;
    my $unexpectedOption = 0;
-   foreach my $w ($jcb->Descendants) {
-      $unexpectedOption++ if ($w->cget($name) ne $value);
-   }
+   eval {
+      foreach my $w ($jcb->Descendants) {
+	 $unexpectedOption++ if ($w->cget($name) ne $value);
+      }
+   };
+   carp "\nFail - checkDescendantsForOption($name,$value): $@" if $@;
    return $unexpectedOption;
 }
 
 sub checkDescendantsTest
 {
    my ($mode, $name, $value) = @_;
+   eval {
+      ## create
+      my $jcb = Setup(-mode => $mode, $name, $value);
+      is(checkDescendantsForOption($jcb, $name, $value), 0);
 
-   ## create
-   my ($mw, $jcb) = Setup(-mode => $mode, $name, $value);
-   is(checkDescendantsForOption($jcb, $name, $value), 0);
-
-   ## configure method
-   $jcb = $mw->JComboBox(-mode => $mode);
-   $jcb->configure($name, $value);
-   is(checkDescendantsForOption($jcb, $name, $value), 0);
-   $mw->destroy;
-   checkCreateGetSet($mode, $name => $value);
+      ## configure method
+      $jcb = $mw->JComboBox(-mode => $mode);
+      $jcb->configure($name, $value);
+      is(checkDescendantsForOption($jcb, $name, $value), 0);
+      $jcb->destroy;
+      checkCreateGetSet($mode, $name => $value);
+   };
+   carp "\nFail - checkDescendantsTest($name,$value): $@" if $@;
 }
 
 sub checkDefaultValue
 {
    my ($option, $value, $mode) = @_;
-   my $mw = MainWindow->new;
-   my $jcb;
-   if ($mode) { $jcb = $mw->JComboBox(-mode => $mode); }
-   else       { $jcb = $mw->JComboBox(); }
-
-   is($jcb->cget($option), $value);
-   $mw->destroy;
+   eval {
+      my $jcb;
+      if ($mode) { $jcb = Setup(-mode => $mode); }
+      else       { $jcb = Setup(); }
+      is($jcb->cget($option), $value);
+      $jcb->destroy;
+   };
+   carp "\nFail - checkDefaultValue($option,$value,$mode): $@" if $@;
+   
 }
 
 sub checkFont
 {
    my ($w, $font) = @_;
-   is($w->cget(-font)->configure(-family), 
+   is($w->cget('-font')->configure(-family), 
       $font->configure(-family));
-   is($w->cget(-font)->configure(-size),
+   is($w->cget('-font')->configure(-size),
       $font->configure(-size));      
 }
 
@@ -299,172 +314,185 @@ sub FocusTraverse
 sub Setup
 {
    my $pack = 0;
-   if ($_[0] eq "pack") {
+   if (@_ && $_[0] eq "pack") {
       shift @_;
       $pack = 1;
     }
-   my $mw = MainWindow->new;
    my $jcb = $mw->JComboBox(@_);
    if ($pack)
    {
       $jcb->pack;
       $mw->update;
    }
-   return ($mw, $jcb);
+   return $jcb;
 }
 
 sub TestArrowbitmap
 {
    my $mode = shift;
-   
-   my $bitmap = "test-$mode";
-   my $mw = MainWindow->new;
-   my $bits = pack("b9"x4,
-      "....1....",
-      "...111...",
-      "..11111..",
-      ".1111111.");
-   $mw->DefineBitmap($bitmap,9,4,$bits);
+   eval {
+      my $bitmap = "test-$mode";
+      my $bits = pack("b9"x4,
+         "....1....",
+         "...111...",
+         "..11111..",
+         ".1111111.");
+      $mw->DefineBitmap($bitmap,9,4,$bits);
  
-   my $jcb = $mw->JComboBox(-mode => $mode, -arrowbitmap => $bitmap);
-   is( $jcb->Subwidget('Button')->cget(-bitmap), $bitmap);
-   $jcb->destroy;
+      my $jcb = Setup(-mode => $mode, -arrowbitmap => $bitmap);
+      is( $jcb->Subwidget('Button')->cget('-bitmap'), $bitmap);
+      $jcb->destroy;
 
-   $jcb = $mw->JComboBox(-mode => $mode);
-   $jcb->configure(-arrowbitmap => $bitmap);
-   is( $jcb->Subwidget('Button')->cget(-bitmap), $bitmap);
-   $mw->destroy;
+      $jcb = Setup(-mode => $mode);
+      $jcb->configure(-arrowbitmap => $bitmap);
+      is( $jcb->Subwidget('Button')->cget('-bitmap'), $bitmap);
+      $jcb->destroy;
+   };
+   carp "\nFail - TestArrowBitmap($mode): $@" if $@;
 }
 
 sub TestArrowimage
 {
    my $mode = shift;
-   my $mw = MainWindow->new;
-   my $image = $mw->Photo("button",
-      -format => "gif", 
-      -file => "t/button.gif"
-   );
+   eval {
+      my $image = $mw->Photo("button",
+         -format => "gif", 
+         -file => "t/button.gif"
+      );
+      
+      my $jcb = $mw->JComboBox(-mode => $mode, -arrowimage => $image);
+      is( $jcb->Subwidget('Button')->cget('-image'),
+	  $jcb->cget('-arrowimage'));
+      $jcb->destroy;
 
-   my $jcb = $mw->JComboBox(-mode => $mode, -arrowimage => $image);
-   is( $jcb->Subwidget('Button')->cget(-image),
-   $jcb->cget(-arrowimage));
-   $jcb->destroy;
+      $jcb = $mw->JComboBox(-mode => $mode);
+      is( $jcb->cget('-arrowimage'), undef); 
+      $jcb->configure(-arrowimage => $image);
+      is( $jcb->Subwidget('Button')->cget('-image'),
+	  $jcb->cget('-arrowimage'));
 
-   $jcb = $mw->JComboBox(-mode => $mode);
-   is( $jcb->cget(-arrowimage), undef); 
-   $jcb->configure(-arrowimage => $image);
-   is( $jcb->Subwidget('Button')->cget(-image),
-   $jcb->cget(-arrowimage));
-
-   $image->delete;
-   $mw->destroy;
+      $image->delete;
+      $jcb->destroy;
+   };
+   carp "\nFail - TestArrowImage($mode): $@" if $@;
 }
 
 sub TestFont
 {
    my $mode = shift;
-   my $mw = MainWindow->new;
+   eval {
+      my $main = MainWindow->new;
 
-   my $font = $mw->Font(
-     -family => 'Times',
-     -size => 20
-   );
+      my $font = $main->Font(
+        -family => 'Times',
+        -size => 20
+      );
+      my $jcb = $main->JComboBox(
+         -mode => $mode,
+         -font => $font
+      );
+      checkFont($jcb, $font);
+      checkFont($jcb->Subwidget('Listbox'), $font);
+      checkFont($jcb->Subwidget('Entry'), $font);
+      $jcb->destroy;
 
-   my $jcb = $mw->JComboBox(
-      -mode => $mode,
-      -font => $font
-   );
-   checkFont($jcb, $font);
-   checkFont($jcb->Subwidget('Listbox'), $font);
-   checkFont($jcb->Subwidget('Entry'), $font);
-   $jcb->destroy;
-
-   $jcb = $mw->JComboBox(-mode => $mode);
-   $jcb->configure(-font => $font);
-   checkFont($jcb, $font);
-   checkFont($jcb->Subwidget('Entry'), $font);
-   checkFont($jcb->Subwidget('Listbox'), $font);
-   $mw->destroy;
+      $jcb = $main->JComboBox(-mode => $mode);
+      $jcb->configure(-font => $font);
+      checkFont($jcb, $font);
+      checkFont($jcb->Subwidget('Entry'), $font);
+      checkFont($jcb->Subwidget('Listbox'), $font);
+      $main->destroy;
+   };
+   carp "\nFail - TestFont($mode): $@" if $@;
 }
 
 sub TestHighlight
 {
    my $mode = shift;
-   checkCreateGetSet($mode, -highlightcolor => 'red', ['Frame']);
-   checkCreateGetSet($mode, -highlightbackground => 'blue', ['Frame']);
+   eval {
+      checkCreateGetSet($mode, -highlightcolor => 'red', ['Frame']);
+      checkCreateGetSet($mode, -highlightbackground => 'blue', ['Frame']);
 
-   my ($mw, $jcb) = Setup("pack",
-      -mode => $mode,
-      -highlightcolor => 'red',
-      -highlightbackground => 'blue'
-   );
-   $jcb->Focus;
-   $mw->update;
+      my $jcb = Setup("pack",
+         -mode => $mode,
+         -highlightthickness => 5,
+         -highlightcolor => 'red',
+         -highlightbackground => 'blue'
+      );
+      my $frame = $jcb->Subwidget('Frame');
 
-   is( $jcb->Subwidget('Frame')->cget(-highlightcolor), 'blue');
-   is( $jcb->Subwidget('Frame')->cget(-highlightbackground), 'red');
-   $mw->destroy;
+      $jcb->Focus("In");
+      $mw->update;
+      is( $frame->cget('-highlightcolor'), 'blue');
+      is( $frame->cget('-highlightbackground'), 'red');
+      $jcb->destroy;
+   };
+   carp "\nFail - TestHighlight($mode): $@" if $@;
 }
 
 sub TestListwidth
 {
    my $mode = shift;
    my $choices = [qw/one two three four five/];
-
-   ## -listwidth (-1)
-   my ($mw, $jcb) = Setup("pack",
-      -mode => $mode,
-      -choices => $choices,
-      -listwidth => -1
-   );
-   my $popup = $jcb->Subwidget('Popup');
-   my $listbox = $jcb->Subwidget('Listbox');
    
+   eval {
+      ## -listwidth (-1)
+      my $jcb = Setup("pack",
+         -mode => $mode,
+         -choices => $choices,
+         -listwidth => -1
+      );
+      my $popup = $jcb->Subwidget('Popup');
+      my $listbox = $jcb->Subwidget('Listbox');
    
-   $jcb->showPopup;
-   $mw->update;
-   is($jcb->width, $popup->width);
-   $jcb->hidePopup;
+      $jcb->showPopup;
+      $mw->update;
+      is($jcb->width, $popup->width);
+      $jcb->hidePopup;
 
-   ## -listwidth (0)
-   $jcb->configure(-listwidth => 0);
-   $jcb->showPopup;
-   $mw->update;
-   my $expectedWidth = $listbox->width + $popup->cget('-bd') * 2;
-   is($popup->width, $expectedWidth);
-   $jcb->hidePopup;
+      ## -listwidth (0)
+      $jcb->configure(-listwidth => 0);
+      $jcb->showPopup;
+      $mw->update;
+      my $expectedWidth = $listbox->width + $popup->cget('-bd') * 2;
+      is($popup->width, $expectedWidth);
+      $jcb->hidePopup;
 
-   ## -listwidth (4)
-   $jcb->configure(-listwidth => 4);
-   $jcb->showPopup;
-   $mw->update;
-   $expectedWidth = $listbox->width + $popup->cget('-bd') * 2;
-   is($popup->width, $expectedWidth);
-   $jcb->hidePopup;
-
-   $mw->destroy;
+      ## -listwidth (4)
+      $jcb->configure(-listwidth => 4);
+      $jcb->showPopup;
+      $mw->update;
+      $expectedWidth = $listbox->width + $popup->cget('-bd') * 2;
+      is($popup->width, $expectedWidth);
+      $jcb->hidePopup;
+      $jcb->destroy;
+   };
+   carp "\nFail - TestListWidth($mode): $@" if $@;
 }
-
 
 sub TestPadY
 {
    my $mode = shift;
-   checkCreateGetSet($mode, -pady => 2);
+   eval {
+      checkCreateGetSet($mode, -pady => 2);
 
-   my ($mw, $jcb) = Setup(qw/pack -mode/, $mode);
-   $jcb->update;
-
-   $jcb->configure(-pady => 5);
-   my %gridInfo = $jcb->Subwidget('Button')->gridInfo;
-   is( $gridInfo{'-ipady'}, 5);
-   $mw->destroy;
+      my $jcb = Setup(qw/pack -mode/, $mode);
+      $jcb->configure(-pady => 5);
+      my %gridInfo = $jcb->Subwidget('Button')->gridInfo;
+      is( $gridInfo{'-ipady'}, 5);
+      $jcb->destroy;
+   };
+   carp "\nFail - TestPadY($mode): $@" if $@;
 }
 
 sub TestRelief 
 {
    my ($mode, $relief) = @_;
-   checkDefaultValue(-relief => $relief, $mode);
-   checkCreateGetSet($mode, -relief => $relief, ['Frame']);
+   eval {
+      checkDefaultValue(-relief => $relief, $mode);
+      checkCreateGetSet($mode, -relief => $relief, ['Frame']);
+   };
+   carp "\nFail - TestRelief($mode): $@" if $@;
 }
 
 sub TestTakeFocus
@@ -472,51 +500,48 @@ sub TestTakeFocus
    my $mode = shift;
    my $result;
 
-   checkCreateGetSet($mode, -takefocus => 0, ['Entry']);
+   eval {
+      checkCreateGetSet($mode, -takefocus => 0, ['Entry']);
    
-   ## With takefocus set to 1, focus should go to the (ext) Button,
-   ## The Entry subwidget, and then to the next (ext) Button.
-   my $main = MainWindow->new;
+      ## With takefocus set to 1, focus should go to the (ext) Button,
+      ## The Entry subwidget, and then to the next (ext) Button.
+      my $b1 = $mw->Button(-text => "one")->pack;
+      my $jcb = Setup("pack", -mode => $mode, -takefocus => 1);
+      my $b2 = $mw->Button(-text => 'two')->pack;
+      $mw->focus;
+      $mw->update;
 
-   my $b1 = $main->Button(-text => "one")->pack;
-   my $jcb = $main->JComboBox(
-      -mode => $mode,
-      -takefocus => 1
-   )->pack;
-   my $b2 = $main->Button(-text => 'two')->pack;
-   $main->focus;
-   $main->update;
+      ## Verify initial focus
+      $b1->focusForce;
+      my $currentFocus = $mw->focusCurrent;
 
-   ## Verify initial focus
-   $b1->focusForce;
-   my $currentFocus = $main->focusCurrent;
+      is(ref($currentFocus), 'Tk::Button');
+      is($currentFocus->cget('-text'), 'one');
 
-   is(ref($currentFocus), 'Tk::Button');
-   is($currentFocus->cget(-text), 'one');
+      ## Verify that subwidget gets focus
+      $result = 'Tk::Label' if $mode eq 'readonly';
+      $result = 'Tk::Entry' if $mode eq 'editable';
+      $currentFocus = FocusTraverse($mw, $currentFocus);
+      is(ref($currentFocus), $result);
 
-   ## Verify that subwidget gets focus
-   $result = 'Tk::Label' if $mode eq 'readonly';
-   $result = 'Tk::Entry' if $mode eq 'editable';
-   $currentFocus = FocusTraverse($main, $currentFocus);
-   is(ref($currentFocus), $result);
+      $currentFocus = FocusTraverse($mw, $currentFocus);
+      is(ref($currentFocus), 'Tk::Button');
+      is($currentFocus->cget('-text'), 'two');
 
-   $currentFocus = FocusTraverse($main, $currentFocus);
-   is(ref($currentFocus), 'Tk::Button');
-   is($currentFocus->cget(-text), 'two');
+      ## Now with takefocus set to 0, focus should skip the
+      ## the Entry subwidget, and go from one ext Button to the
+      ## other.
+      $jcb->configure(-takefocus => 0);
+      $currentFocus = FocusTraverse($mw, $currentFocus);
+      is(ref($currentFocus), 'Tk::Button');
+      is($currentFocus->cget('-text'), 'one');
 
-   ## Now with takefocus set to 0, focus should skip the
-   ## the Entry subwidget, and go from one ext Button to the
-   ## other.
-   $jcb->configure(-takefocus => 0);
-   $currentFocus = FocusTraverse($main, $currentFocus);
-   is(ref($currentFocus), 'Tk::Button');
-   is($currentFocus->cget(-text), 'one');
-
-   $currentFocus = FocusTraverse($main, $currentFocus);
-   is(ref($currentFocus), 'Tk::Button');
-   is($currentFocus->cget(-text), 'two');
-
-   $main->destroy;
+      $currentFocus = FocusTraverse($mw, $currentFocus);
+      is(ref($currentFocus), 'Tk::Button');
+      is($currentFocus->cget('-text'), 'two');
+      foreach my $w ($jcb, $b1, $b2) { $w->destroy; }
+   };
+   carp "\nFail - TestTakeFocus($mode): $@" if $@;
 }
 
 sub TestTextVariable 
@@ -524,20 +549,22 @@ sub TestTextVariable
    my $mode = shift;
    my $textVar;
 
-   checkCreateGetSet($mode, -textvariable => \$textVar, ['Entry']);
+   eval {
+      checkCreateGetSet($mode, -textvariable => \$textVar, ['Entry']);
 
-   my ($mw, $jcb) = Setup(-mode => $mode);
-   $jcb->configure(-textvariable => \$textVar);
+      my $jcb = Setup(-mode => $mode);
+      $jcb->configure(-textvariable => \$textVar);
 
-   $jcb->DisplayedName("test1");
-   $jcb->update;
-   is($textVar, "test1");
+      $jcb->DisplayedName("test1");
+      $jcb->update;
+      is($textVar, "test1");
 
-   $jcb->addItem("test2", -selected => 1);
-   $jcb->update;
-   is($textVar, "test2");
-
-   $mw->destroy;
+      $jcb->addItem("test2", -selected => 1);
+      $jcb->update;
+      is($textVar, "test2");
+      $jcb->destroy;
+   };
+   carp "\nFail - TestTextVariable($mode): $@" if $@;
 }
 
 

@@ -1,5 +1,31 @@
 Revision history for Perl extension Tk::JComboBox.
 
+1.05 Updated Test Code - No changes to any of the Modules!
+    
+   - Failed Test Report:
+     http://www.nntp.perl.org/group/perl.cpan.testers/188280
+     By cpan@www.interlab.nl
+  
+     Reported that I'd Forgotten PREREQ_PM - (how embarrassing)
+       - Modfied Makefile.PL accordingly.  
+     
+   - Failed Test Report:
+     http://www.nntp.perl.org/group/perl.cpan.testers/188015
+     by: saper@cpan.org
+
+     I hope Sébastien doesn't give up on me and stop testing this
+     module. I expected it would fail, since I wasn't entirely
+     certain what had failed. Unfortunately, this error report
+     was tougher to get anything out of than the last one, and the
+     fault lies solely with me, since my scripts were apparently 
+     so brittle that a few of them died before running even ONE
+     test!
+
+     - Modified test scripts making extensive use of eval blocks
+     so that problems with one test would kill the entire script.
+     Hopefully, the carp calls I've added will give me more helpful
+     information on what's going wrong, so that I can fix it. 
+
 1.04 Bug Fix - Response to Failed test report
      http://www.nntp.perl.org/group/perl.cpan.testers/187588
      By: Sébastien Aperghis-Tramoni <saper@cpan.org>
