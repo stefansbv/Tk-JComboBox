@@ -64,3 +64,5 @@ sub checkItemVisibility
    $result = "not visible" if $listbox->bbox($index) eq "";
    is($result, "visible");
 }
+
+

@@ -6,18 +6,18 @@
 ##
 ## ACKNOWLEDGEMENTS:
 ## Very little comes from nothing, and as the name suggests,
-## JComboBox.pm is superficially similar to the java.swing.JComboBox
+## JComboBox.pm is superficially similar to the javax.swing.JComboBox
 ## component which is owned by Sun Microsystems. This module shares
 ## some of the same Method names and basic look and feel, but none
 ## of the code.
 ##
-## JComboBox.pm owes its basic original structure to Graham Barr's
-## MenuEntry (Thanks, Graham) and a hodgepodge of methods and options
-## that appeared useful in BrowseEntry, Optionmenu, and the
-## ComboEntry widget (part of Tk-DKW). Features that others have asked
-## for have also been added over time. So this widget is basically a
-## giant combo box stew with a few extra spices that I've come up with
-## myself.
+## JComboBox.pm owed its original structure to Graham Barr's MenuEntry
+## (Thanks, Graham - it was a fine launchpad) and a hodgepodge of 
+## methods and options that appeared useful in BrowseEntry, Optionmenu, 
+## and the ComboEntry widget (part of Tk-DKW). Features that others 
+## have asked for have also been added over time. So this widget is 
+## basically a giant combo box stew with a few extra spices that I've 
+## come up with myself.
 #######################################################################
 package Tk::JComboBox;
 
@@ -29,14 +29,15 @@ use Tk::CWidget;
 use Tk::CWidget::Util::Boolean qw(:all);
 
 use vars qw($VERSION);
-$VERSION = "1.03";
+$VERSION = "1.04";
 
 BEGIN
 {
    ## Setup a series of private accessors used within public/private
    ## methods. These are all intended for INTERNAL use only. The
    ## methods act as a way of consolidating the internal hash keys
-   ## that are being used.
+   ## that are being used. Using method calls instead of hash keys
+   ## helps ensure consistant usage throughout.
 
    sub CreateGetSet 
    {
@@ -63,7 +64,7 @@ BEGIN
 }
 
 use base qw(Tk::CWidget);
-Tk::Frame->Construct('JComboBox');
+Tk::Widget->Construct('JComboBox');
 
 ## This struct below meant to represent the contents displayed in the
 ## pulldown list. Name is the text which is displayed, value is for 
@@ -154,7 +155,7 @@ sub Populate {
    ## widget that makes up the Entry, a Button. I used to allow the 
    ## mode to be switched on-the-fly, and may again in the future.
 
-   my $mode = delete $args->{-mode} || MODE_UNEDITABLE;
+   my $mode = delete $args->{'-mode'} || MODE_UNEDITABLE;
    $cw->mode(lc($mode), $args);
 
    ## Layout ComboBox controls 
@@ -182,15 +183,17 @@ sub Populate {
       -background          => [qw/DESCENDANTS background  Background/],
       -borderwidth         => [qw/Frame borderwidth BorderWidth 2/],
       -cursor              => [qw/DESCENDANTS cursor Cursor/],
-      -disabledbackground  => [qw/METHOD/],
+      -disabledbackground  => [qw/METHOD/, undef, undef, Tk::NORMAL_BG],
       -disabledforeground  => [qw/METHOD/, undef, undef, Tk::DISABLED],
       -entrybackground     => [{-background => [$entry, $button, $listbox]}],
       -entrywidth          => [qw/METHOD entryWidth EntryWidth -1/],
       -font                => [[$entry, $listbox], qw/font Font/],
       -foreground          => [[$entry, $listbox], qw/foreground Foreground/],
       -gap                 => [qw/METHOD gap Gap 0/],
-      -highlightbackground => [qw/METHOD/],
-      -highlightcolor      => [qw/METHOD/],
+      -highlightbackground => [qw/METHOD/, undef, undef, 
+                                 $frame->cget('-highlightbackground')], 
+      -highlightcolor      => [qw/METHOD/, undef, undef, 
+                                 $frame->cget('-highlightcolor')],
       -highlightthickness  => [$frame, undef, undef, 0],
       -pady                => [qw/METHOD padY PadY/],
       -relief              => [qw/Frame relief Relief groove/],
@@ -253,7 +256,7 @@ sub choices
    }
    foreach my $el (@{$listAR}) {
       if (ref($el) eq 'HASH') {
-         my $name = delete $el->{-name} ||
+         my $name = delete $el->{'-name'} ||
             croak "Invalid Menu Item. -name must be given when " . 
               "using a Hash reference";
          my $index = $cw->addItem($name, %$el);
@@ -263,7 +266,7 @@ sub choices
       }
    }
    ## There's no need to store the data more than once.
-   $cw->{Configure}{-choices} = [];
+   $cw->{Configure}{'-choices'} = [];
 }
 
 
@@ -296,18 +299,18 @@ sub disabledforeground
    return $cw->disabled("foreground", $color);
 }
 
-
+ 
 sub entrybackground 
 {
    my ($cw, $val) = @_;
-   return $cw->{Configure}{-entrybackground} unless defined $val;
+   return $cw->{Configure}{'-entrybackground'} unless defined $val;
    $cw->configureSubwidgets([qw/Box Listbox/] => {-bg => $val});
 }
 
 sub entrywidth
 {
    my ($cw, $width) = @_;
-   return $cw->{Configure}{-entrywidth} unless defined $width;
+   return $cw->{Configure}{'-entrywidth'} unless defined $width;
    $cw->gap(0) if !defined($cw->gap);
    $cw->UpdateWidth('delete', "");
 }
@@ -316,7 +319,7 @@ sub gap
 {
    my ($cw, $gap) = @_;
    if (!defined($gap)) {
-      return $cw->{Configure}{-gap} if defined $cw->{Configure}{-gap};
+      return $cw->{Configure}{'-gap'} if defined $cw->{Configure}{'-gap'};
       return 0;
    }
    $cw->UpdateWidth('add', "");
@@ -325,21 +328,21 @@ sub gap
 sub highlightbackground
 {
    my ($cw, $color) = @_;
-   return $cw->{Configure}{-highlightbackground} unless defined $color;
+   return $cw->{Configure}{'-highlightbackground'} unless defined $color;
    $cw->Subwidget('Frame')->configure(-highlightbackground => $color);
 }
 
 sub highlightcolor
 {
    my ($cw, $color) = @_;
-   return $cw->{Configure}{-highlightcolor} unless defined $color;
+   return $cw->{Configure}{'-highlightcolor'} unless defined $color;
    $cw->Subwidget('Frame')->configure(-highlightcolor => $color);
 }
-
+ 
 sub maxrows
 {
    my ($cw, $rows) = @_;
-   return $cw->{Configure}{-maxrows} unless defined $rows;
+   return $cw->{Configure}{'-maxrows'} unless defined $rows;
    $cw->UpdateListboxHeight;
 }
 
@@ -391,10 +394,10 @@ sub mode
 sub pady
 {
    my ($cw, $pad) = @_;
-   return $cw->{Configure}{-pady} unless defined $pad;
+   return $cw->{Configure}{'-pady'} unless defined $pad;
    my $button = $cw->Subwidget('Button');
    my %gridInfo = $button->gridInfo;
-   $gridInfo{-ipady} = $pad;
+   $gridInfo{'-ipady'} = $pad;
    $button->gridForget;
    $button->grid(%gridInfo);
 }
@@ -402,7 +405,7 @@ sub pady
 sub state
 {
    my ($cw, $state) = @_;
-   return $cw->{Configure}{-state} || "normal" unless defined $state;
+   return $cw->{Configure}{'-state'} || "normal" unless defined $state;
 
    $state = lc($state);
    croak "Invalid value for -state: $state!" 
@@ -425,7 +428,7 @@ sub state
 sub validate {
    my ($cw, $mode) = @_;
 
-   return $cw->{Configure}{-validate} unless $mode;
+   return $cw->{Configure}{'-validate'} unless $mode;
    return if $cw->mode eq MODE_UNEDITABLE;
 
    $mode = lc($mode);
@@ -486,7 +489,7 @@ sub getItemIndex
    my ($cw, $item, %args) = @_;
 
    ## Extract mode (defaults to exact if not set
-   my $mode = lc($args{-mode}) || "exact";
+   my $mode = lc($args{'-mode'}) || "exact";
    if ($mode !~ /^((use|ignore)case|exact)$/) {
       carp "Invalid value for -mode in getItemIndex " .
            "(try: usecase, ignorecase, or exact)";
@@ -495,18 +498,18 @@ sub getItemIndex
 
    ## start - which index to start looking. Defaults to 0;
    ## if the start is out of range, then reset it to 0.
-   my $start = $args{-start} || 0;
-   delete $args{-start};
+   my $start = $args{'-start'} || 0;
+   delete $args{'-start'};
    $start = 0 
      if $start >= $cw->Subwidget('Listbox')->size;
 
    ## wrap - only use when start is not 0, it determines 
    ## whether or not the search should continue at the beginning
    ## of the list until the start point when at the end of the list
-   my $wrap = delete $args{-wrap} || 0;
+   my $wrap = delete $args{'-wrap'} || 0;
 
    ## type - which string is being searched - the name, or value.
-   my $type = lc($args{-type}) || "name";
+   my $type = lc($args{'-type'}) || "name";
    if ($type !~ /^(name|value)$/) {
       carp "Invalid value for -type in getItemIndex (valid: name|value)";
       return;
@@ -604,7 +607,7 @@ sub insertItemAt
    $item->name($name);
 
    ## Set the value if it's given
-   my $value = $args{-value};
+   my $value = $args{'-value'};
    if (defined($value)) {
       $item->value($value);
    }
@@ -623,7 +626,7 @@ sub insertItemAt
 
    ## Set Entry as selected if option is set
    my $selIndex = $cw->Selected;
-   my $sel = $args{-selected};
+   my $sel = $args{'-selected'};
    if ($sel && $sel =~ /yes|true|1/i) {
       $cw->setSelectedIndex($index);
    }
@@ -724,7 +727,7 @@ sub showPopup
    return if ($cw->popupIsVisible || $cw->getItemCount == 0);
 
    $cw->Callback(-popupcreate => $cw)
-      if (ref($cw->cget(-popupcreate)) eq 'Tk::Callback');
+      if (ref($cw->cget('-popupcreate')) eq 'Tk::Callback');
 
    my $popup = $cw->Subwidget('Popup');
    $popup->deiconify;
@@ -878,7 +881,7 @@ sub BindSubwidgets
 sub CreateButton {
    my ($cw, %args) = @_;
 
-   my $ignoreLeave = delete $args{-ignoreleave};
+   my $ignoreLeave = delete $args{'-ignoreleave'};
    my $frame = $cw->Subwidget('Frame');
    my $button = $frame->Label(%args);
    $button->bind('<ButtonPress-1>',   [$cw => 'ButtonDown']);
@@ -997,14 +1000,14 @@ sub DisplayedName
 	 return substr($val, 0, $index);
       }
       elsif ($cw->mode eq MODE_UNEDITABLE) {
-	 return  $entry->cget(-text) || "";
+	 return  $entry->cget('-text') || "";
       }
       return "";
    }
 
    ## Mode is readonly, so we're dealing with Label widget.
    if ($cw->mode eq MODE_UNEDITABLE) {
-      my $tv = $entry->cget(-textvariable);
+      my $tv = $entry->cget('-textvariable');
       $$tv = $value if (defined($tv) && ref($tv) eq 'SCALAR');
       $entry->configure(-text => $value);
 
@@ -1031,9 +1034,9 @@ sub DumpItems
    my @list;
    foreach my $i (0 .. $cw->getItemCount-1) {
       my $value = {};
-      $value->{-name} = $cw->getItemNameAt($i);
-      $value->{-value} = $cw->getItemValueAt($i);
-      $value->{-selected} = 1 if $cw->getSelectedIndex == $i;
+      $value->{'-name'} = $cw->getItemNameAt($i);
+      $value->{'-value'} = $cw->getItemValueAt($i);
+      $value->{'-selected'} = 1 if $cw->getSelectedIndex == $i;
       push @list, $value;
    }
    return \@list;
@@ -1221,7 +1224,7 @@ sub PopupCreate {
    ## Provide a hook for developers to modify configuration of Popup
    ## prior to displaying it.
    $cw->Callback(-popupmodify => $cw)
-      if (ref($cw->cget(-popupmodify)) eq 'Tk::Callback');
+      if (ref($cw->cget('-popupmodify')) eq 'Tk::Callback');
 }
 
 sub UpdateListboxHeight
@@ -1304,7 +1307,7 @@ sub ValidateCommand
    my $mode = $cw->cget('-validate');
 
    if ($mode !~ /match/) {
-      my $vc = $cw->cget(-validatecommand);
+      my $vc = $cw->cget('-validatecommand');
       return TRUE unless defined $vc;
       return $vc->Call($str, $chars, $currval, $i, $action) if defined($vc);
    }
@@ -1432,21 +1435,21 @@ sub KeyPress
 sub ListboxEnter 
 {
   my $cw = shift;
-  return if IsFalse($cw->cget(-listhighlight));
+  return if IsFalse($cw->cget('-listhighlight'));
   $cw->Subwidget('Listbox')->CancelRepeat;
 }
 
 sub ListboxLeave 
 {
    my ($cw, $x, $y) = @_;
-   return if IsFalse($cw->cget(-listhighlight));
+   return if IsFalse($cw->cget('-listhighlight'));
    $cw->Subwidget('Listbox')->AutoScan($x, $y);
 }
 
 sub ListboxMotion 
 {
   my ($cw, $xy) = @_;
-  return if IsFalse($cw->cget(-listhighlight));
+  return if IsFalse($cw->cget('-listhighlight'));
   my $listbox = $cw->Subwidget('Listbox');
   my $index = $listbox->index($xy);
   $listbox->Motion($index);

@@ -1,3 +1,4 @@
+use Carp;
 use Tk;
 use Tk::JComboBox;
 use Test::More tests => 31;

@@ -1,5 +1,27 @@
 Revision history for Perl extension Tk::JComboBox.
 
+1.04 Bug Fix - Response to Failed test report
+     http://www.nntp.perl.org/group/perl.cpan.testers/187588
+     By: Sébastien Aperghis-Tramoni <saper@cpan.org>
+ 
+   - Some options were not being set to an initial value, and 
+     were passing undef or "" off as a color. NOTE: this did
+     not trigger an error on Win32.
+     - Set default values for -highlightbackground, -highlightcolor,
+       and -disabledbackground.
+
+   - Noticed that some tests were using methods that expected 
+     JComboBox to be packed (TestListwidth). Adjusted setup
+     method TestListwidth and TestHighlight to test packed
+     widgets, and made sure that update was called immediately
+     after pack call. Mods in 02_Basic_Options.t, 
+     03_Options_Callback. NOTE: the problem did not trigger
+     any errors on Win32.
+
+   - Cleaned code in various Test files, and JComboBox.pm
+     - Ensure that I was using single quotes for all uses
+       of cget and hash keys. This was done for consistancy
+       and possibly older versions of perl.
 
 1.03 Bug Fix - Bug Submitted by Ken Prows - 01 Mar 05
 
@@ -12,9 +34,6 @@ Revision history for Perl extension Tk::JComboBox.
    - Updated Construct Call so that JComboBox can only be created
      by a Frame-based widget.
      
-
-
-
 1.02 Repaired Broken Test file: accidentally left a MainLoop call in test.
      No code changed. Versions: 1.01, 0.01, 0.02 removed from CPAN.
 

@@ -305,7 +305,11 @@ sub Setup
     }
    my $mw = MainWindow->new;
    my $jcb = $mw->JComboBox(@_);
-   $jcb->pack if $pack;
+   if ($pack)
+   {
+      $jcb->pack;
+      $mw->update;
+   }
    return ($mw, $jcb);
 }
 
@@ -389,14 +393,14 @@ sub TestHighlight
    checkCreateGetSet($mode, -highlightcolor => 'red', ['Frame']);
    checkCreateGetSet($mode, -highlightbackground => 'blue', ['Frame']);
 
-   my ($mw, $jcb) = Setup(
+   my ($mw, $jcb) = Setup("pack",
       -mode => $mode,
       -highlightcolor => 'red',
       -highlightbackground => 'blue'
    );
-   $jcb->update;
    $jcb->Focus;
-  
+   $mw->update;
+
    is( $jcb->Subwidget('Frame')->cget(-highlightcolor), 'blue');
    is( $jcb->Subwidget('Frame')->cget(-highlightbackground), 'red');
    $mw->destroy;
@@ -408,13 +412,14 @@ sub TestListwidth
    my $choices = [qw/one two three four five/];
 
    ## -listwidth (-1)
-   my ($mw, $jcb) = Setup(
+   my ($mw, $jcb) = Setup("pack",
       -mode => $mode,
       -choices => $choices,
       -listwidth => -1
    );
    my $popup = $jcb->Subwidget('Popup');
    my $listbox = $jcb->Subwidget('Listbox');
+   
    
    $jcb->showPopup;
    $mw->update;

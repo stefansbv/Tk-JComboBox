@@ -1,17 +1,70 @@
-Tk/JComboBox version 1.03
+Tk/JComboBox version 1.04
 =========================
+  
+  Use your own best judgement before upgrading your module
+if you use JComboBox on a Windows machine. No new functionality
+has been added. Code was added to accommodate test failures
+reported in other platforms - failures that did not occur on 
+my Windows test machines. The new code still does not trigger
+any errors on my windows test machines.
 
-Changes for 1.03 (From Changes file)
+  I noticed that a tester reported a failure on CPAN, so 
+I investigated the problems. It turns out there were a few 
+OS-specific problems including a few that I was not able 
+to get to the bottom of since I was unable to duplicate them.
 
-1.03 Bug Fix - Bug Submitted by Ken Prows - 01 Mar 05
+  I discovered a few places where I had problems due to not
+setting default values for a few options (I should have known
+better...). The other reported problems had to do with the
+Test routines for validation - these problems I could not 
+duplicate, so I'm antipating another failure from the tester.
 
-   - Bug (cpan#11707) Fixed: AutoFind was not using listbox->see
-     to ensure that an entry in the listbox would be visible
-     when it was selected through AutoFind.
-     - Added 16 Tests in Test suite to test for bug (06_Bugs.t)
-     - Fixed AutoFind sub in JComboBox.pm
+  Unfortunately, I do not have the same LINUX distro the tester
+had - I only had access to current SUSE and RH distributions.
+After making the modifications listed in Changes, I 
+tested against current versions of Solaris, and RH/SUSE 
+Linux using the following Tk Versions:
 
-   - Scanned and updated pods for mods due to release 
+ - Tk800.024 
+ - Tk800.025 
+ - Tk804.026 
+ - Tk804.027 
+
+The multiple versions of Tk took me a while and I'm not looking
+forward to doing that again anytime soon. One thing that I 
+noticed is the tendency of some failures to cause the test script
+to die. For future releases, I'm planning on calling Test methods
+within eval blocks. This has not been done for this version.
+
+When using this module, please run the test suite, and report any 
+failures that you encounter.
+
+Changes for 1.04 (From Changes file)
+
+1.04 Bug Fix - Response to Failed test report
+     http://www.nntp.perl.org/group/perl.cpan.testers/187588
+     By: Sébastien Aperghis-Tramoni <saper@cpan.org>
+ 
+   - Some options were not being set to an initial value, and 
+     were passing undef or "" off as a color. NOTE: this did
+     not trigger an error on Win32.
+     - Set default values for -highlightbackground, -highlightcolor,
+       and -disabledbackground.
+
+   - Noticed that some tests were using methods that expected 
+     JComboBox to be packed (TestListwidth). Adjusted setup
+     method TestListwidth and TestHighlight to test packed
+     widgets, and made sure that update was called immediately
+     after pack call. Mods in 02_Basic_Options.t, 
+     03_Options_Callback. NOTE: the problem did not trigger
+     any errors on Win32.
+
+   - Cleaned code in various Test files, and JComboBox.pm
+     - Ensure that I was using single quotes for all uses
+       of cget and hash keys. This was done for consistancy
+       and possibly older versions of perl.
+    
+   - Scanned and updated mods for changes due to release.
 
 JComboBox is a ComboBox implementation that combines several features of the various Combo Box implementations available for Perl/Tk and attempts to provide a solution that should cover the majority of your Combo Box needs. The implementation tends to skew somewhat towards the Java and Win32 implementation of a Combo Box more than the Motif one, however it can be configured with little trouble to mimic the Motif implementation if desired.
 

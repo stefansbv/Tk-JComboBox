@@ -150,7 +150,10 @@ sub setup
       $pack = 1;
    }
    my $jcb = $mw->JComboBox(@_);
-   $jcb->pack if $pack;
+   if ($pack) {
+      $jcb->pack;
+      $mw->update;
+   }
    return $jcb;
 }
 
