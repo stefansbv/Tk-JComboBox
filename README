@@ -1,0 +1,48 @@
+NAME   Tk:JComboBox
+
+DESCRIPTION
+
+  Tk::JComboBox is yet another widget that offers a pull down
+menu like Optionmenu, BrowseEntry, ComboEntry among others. It
+was created to combine many of the features that I use most
+often under an interface very similar to the Java Swing
+component by the same name. This widget may have much of
+the same functionality, methods, and behavior but it falls
+somewhat short of being a clone. I inteded for it to be
+similar enough to be easy to learn if one was familiar
+with the component.
+
+  There is detailed HTML documentation in the docs
+directory, 
+
+ACKNOWLEDGEMENTS:
+
+This code started out as Graham Barr's MenuEntry. I liked 
+MenuEntry and thought it had lots of promise. So I decided to 
+add to it.The more I added (and subtracted), the less it 
+looked like like MenuEntry until it got to the point where 
+calling it MenuEntry no longer made sense. Thank you Graham 
+for provided the fertile soil from which JComboBox grew. Perhaps
+someone else will take this widget in directions I hadn't 
+forseen as I took yours. - RCS 
+
+INSTALLATION:
+
+To install, type
+ 
+        $ perl Makefile.PL
+        $ make
+        $ make test
+        $ make install
+ 
+Send bug reports, comments and suggestions to 
+RobSeegel@aol.com or better yet, post them to the 
+ptk mailing list. That's the best place so that others 
+can be aware of possible problems, too.
+
+Cheers!
+
+Rob Seegel
+15 May 2001
+
+
