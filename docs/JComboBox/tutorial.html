@@ -4,7 +4,7 @@
 <head>
   <title>Exploring The Perl/Tk JComboBox - A Tutorial</title>
   <link rel="stylesheet" type="text/css" href="../ptkdocs.css">
-  <meta name="Date" content="20 Apr 2001">
+  <meta name="Date" content="27 Dec 2001">
   <meta name="Author" content="Rob Seegel">
   <meta name="keywords" content="Tk::JComboBox, JComboBox, ComboBox, 
       Pulldown, Tutorial, Perl/Tk, Tk">
@@ -25,7 +25,7 @@
   </td>
   <td valign="top" width ="30%" height='100%' rowspan=2>
     <table width="100%" >
-      <tr ><th align=right>Date:</th><td>20 Apr 2001</td></tr>
+      <tr ><th align=right>Date:</th><td>27 Dec 2001</td></tr>
       <tr><th align=right>Author:</th><td>Rob Seegel</td></tr>
       <tr><th align=right>Package:</b></td><td>JComboBox</td></tr>
     </table>      
@@ -63,22 +63,21 @@
 <a name="introduction"></a>
 <h3>What is it and what is it good for?</h3>
 <p class="pMargin">
-JComboBox is yet another combo box implementation  for
-use with the Perl/Tk Toolkit.  A combo box is basically a widget that can
-activate a dropdown listbox with a number of items. After an item is
-selected, the listbox disappears and that item appears on the widget.
-This is a space-saving alternative to having a full list in the interface, or 
-having a very long panel of radio buttons.
+JComboBox is yet another combo box implementation  for use with the Perl/Tk Toolkit.  
+A combo box is a widget that can activate a dropdown listbox with a number of selectable items.  
+After an item is selected, the listbox disappears and that item appears on the widget. This is a space-saving alternative to having a full list in the interface,  or having a very long Frame or Menu full of radio buttons.
 </p>
 
 <p class="pMargin">
-This implementation is named for the JComboBox used
-with the Java Swing classes, and those familiar with that component should
-have no problem using this because the similarities go beyond the name
-and extend to the method names, and general behavior.  When compared to
-other similar Perl/Tk widgets, JComboBox is probably the most bloated or to 
-put it another way, feature-rich.  It has a slightly larger overhead associated 
-with it than any of the others.  Simply put, there is more code to support the
+This implementation is named for the JComboBox component in
+the Java Swing classes, and those familiar with that component should
+have no problem using this because both share several superficial 
+similarities including method names and general behavior. 
+</p>
+<p class=pMargin> 
+When compared to other similar Perl/Tk widgets, JComboBox is probably the most 
+bloated or to  put it another way, feature-rich.  It has a slightly larger overhead associated 
+with it than any of the others.  Simply put, there is more code required to support the
 extra options and methods it offers. In applications I have used it in, I've found that the 
 cost is negligible and that the benefits outweigh the cost, but since requirements
 and constraints vary, it's probably best to determine this for yourself.
@@ -87,9 +86,8 @@ and constraints vary, it's probably best to determine this for yourself.
 <a name="modes"></a><h3>Two modes of operation</h3>
 <p class="pMargin">
 Like the Java Component, this widget has two modes of operation: uneditable
-and editable.  To better distinguish the two modes, for this widget the uneditable 
-mode is called <b>readonly</b>.  Each mode has a separate visual appearance, and
-widget options may have slightly different effects depending on the mode.
+and <b>editable</b>.  To better distinguish the two modes, the uneditable mode is called 
+<b>readonly</b>.  Each mode has a separate visual appearance, and widget options may have slightly different effects depending on the mode.
 </p>
 
 <a name="readonly"></a><h3>Read Only ( readonly )</h3>
@@ -163,13 +161,13 @@ MainLoop;</pre>
 <br>
 <h3>Typical list element tasks</h3>
 <p class="pMargin">
-The examples above showed how someone might populate a JComboBox
-statically. This is, set the list of elements by setting one operation. There are
-times when it might be preferrable to add a single list element, remove one or 
-even select one programmatically. All these things can be done easily, and
-usually in a variety of different ways. Before going any further, it is useful to
-know that there are three pieces of information that can be associated with 
-each list element.
+The examples above illustrate how one might populate all items within a JComboBox 
+with one operation. This is most typically done at creation time, though the <i>-choices</i>
+option can be configured anytime. Subdequent configurations override previous ones.
+While this has it's uses, there are times when it might be preferrable to add or remove
+a single list element. This can be done easily, and in usually in a variety of ways.
+Before going any further, it is useful to know that there are currently three pieces of 
+information that can be associated with each list element.
 </p>
 <ul>
   <li><i>index</i> - this is an integer value that denotes the list element's position
@@ -468,7 +466,7 @@ None at present.
 
 <hr>
 <Address><font size="-1">
-This document was written by Rob Seegel on 20 Apr 2001
+This document was updated by Rob Seegel on 27 Dec 2001
 </font>
 </Address>
 

@@ -6,8 +6,7 @@ package Tk::JComboBox;
 ## subtracted), the less it looked like like MenuEntry until it
 ## got to the point where calling it MenuEntry no longer made
 ## sense. Thank you Graham for provided the fertile soil from
-## which JComboBox grew. Perhaps someone else will take this
-## widget in directions I hadn't forseen as I took yours. - RCS
+## which JComboBox grew. - RCS
 
 ## By the way, this version of JComboBox.pm is Copyright (c) 
 ## 2001 Rob Seegel <RobSeegel@aol.com>. All rights reserved. 
@@ -36,7 +35,7 @@ struct '_JCBListItem' => [
 use Tk qw(Ev);
 use Carp;
 use vars qw($VERSION);
-$VERSION = "0.01";
+$VERSION = "0.02";
 
 use base qw(Tk::Frame);
 Tk::Widget->Construct('JComboBox');
@@ -329,7 +328,7 @@ sub validate {
 
   return $cw->{Configure}{-validate} unless $mode;
   $mode = lc($mode);
-  croak "Invalid validate mode: $mode" 
+  croak "Invalid validate value: $mode" 
     if ($mode !~ /^(none|focus|focusin|focusout|key|match|cs-match)$/);
 
   my $e = $cw->Subwidget('ED_Entry');
@@ -373,7 +372,6 @@ sub getItemIndex {
   $item = "\Q" . $item . "\E"
     if ($mode =~ /^((use|ignore)case)$/);
 
- 
   my $type = lc($args{-type}) || "name";
   croak "Invalid value for -type in getItemIndex (valid: name|value)"
     if ($type !~ /^(name|value)$/);
@@ -392,9 +390,27 @@ sub getItemIndex {
 
 sub getItemCount { return scalar(@{$_[0]->{_list}}) }
 
-sub getSelectedIndex { return $_[0]->{_selIndex} }
+sub getSelectedIndex { 
+   my $cw = shift;
+   my $index = $cw->{_selIndex};
+   if (!defined($index) || $cw->cget('-mode') ne 'editable') {
+     return $index;
+   }
+   my $item = $cw->{_list}->[$index];
+   my $val = $cw->Subwidget('ED_Entry')->get;
+   return $index 
+     if $item->name eq $val;
+   return undef;
+}
 
-sub getSelectedValue { return $_[0]->getItemValueAt($_[0]->getSelectedIndex) }
+sub getSelectedValue { 
+  my $cw = shift;
+  my $index = $cw->getSelectedIndex;
+  if (!defined($index)) {
+    return $cw->Subwidget('ED_Entry')->get;
+  } 
+  return $cw->getItemValueAt($index);
+}
 
 sub getItemNameAt {
   my ($cw, $index) = @_;
@@ -841,4 +857,4 @@ sub SetFocus {
 }
 
 1;
-_END_
+__END__

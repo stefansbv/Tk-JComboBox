@@ -4,25 +4,15 @@
 <head>
   <title>Tk::JComboBox - Create and manipulate JComboBox widgets</title>
   <link rel='stylesheet' type='text/css' href='ptkdocs.css'>
-  <meta name='Version' content='3.51'>
-  <meta name='Date' content='17 OCT 2000'>
-  <meta name='Author' content='Rob Seegel'>
-  <meta name='keywords' content='Tk::JComboBox, JComboBox, ComboBox, 
-      Pulldown, Composite, Perl/Tk, Tk'>
   <meta name='description' content='Documentation of the Tk::JComboBox
       widget for Perl/Tk. This widget is similar to the java JComboBox
       in general appearance, and behavior. It is not quite a clone.'>
-  <meta name='contributors' content='Graham Barr'>
-  <meta name='comments'   content='This start out as an enhancement of
-     Graham's alpha widget called MenuEntry. JComboBox's code is quite 
-     different from MenuEntry's, uses different methods, and has different
-     options,  but it probably wouldn't be here if not for MenuEntry'>
  </head>
 <body background="bg.gif">
 
 <table cellpadding=4 width='100%'>
 <tr valign=middle>
-  <td class='header'>&nbsp; Tk::JComboBox</td>
+  <td class='header'><br><h1>&nbsp;Tk::JComboBox</h1></td>
   <th class='subheader' width = '10%'>Package Info</th>
 </tr>
 <tr>
@@ -32,7 +22,7 @@
   </td>
   <td valign="top" width ="30%" height='100%' rowspan=2>
     <table width="100%" >
-      <tr><th align=right>Version:</th><td>0.01</td></tr>
+      <tr><th align=right>Version:</th><td>0.02</td></tr>
       <tr><th align=right>DSLIP:</th><td>bdpOp</td></tr>
       <tr><th align=right>Author:</th><td>Rob Seegel</td></tr>
       <tr><th align=right>Maintainer:</th><td><a href="mailto:robseegel@aol.com">Rob Seegel</a></td></tr>
@@ -58,7 +48,6 @@
 </td></tr>
 </table>
 <hr>
-
 
 <a name='synopsis'><h3>SYNOPSIS</h3></a>
 <pre>
@@ -110,46 +99,28 @@ That is, the widget is composed of an Entry widget with a Button
 to the right of it. Like the uneditable form, a button press will 
 activate a popup list.
 </p>
-
-<p class='pMargin'><b>Note: </b>
-   Having two distinct appearances depending on whether
-   or not the widget is editable or not was an intentional 
-   design decision.  It makes sense from a usability
-   standpoint. An uneditable text string that is contained
-   in an area that <i>looks</i> as though it should be
-   editable is a misleading context clue which can 
-   potentially confuse users. With a little extra effort, 
-   this appearance can be overridden in whatever matter
-   you choose, but it is not recommended.
-</p>
 <p class='pMargin'>For more detailed information on using
  this widget, refer to the <b>JComboBox</b> <a href='JComboBox/tutorial.html'>tutorial</a>.
 </p>
   
 <hr>
 <a name='components'><h3>COMPONENTS</h3></a>
-<p class='pMargin'>
-<b>WARNING:</b> Directly accessing and configuring JComboBox's 
-subwidgets should generally be avoided when possible. For most
-cases, options are provided that will configure them. In addition,
-The subwidget names are more descriptive of the each widget's function
-and not it's actual class, and this could lead to confusion. For example,
-There is not a single Button widget within JComboBox, but there
-<b>are</b> Subwidgets labeled as Buttons (Label widgets)</p>
-
-<p class='pMargin'>
-The subwidgets below are only documented to provide a better 
-understanding of which parts of the JComboBox are affected by
-the options, and to provide an extra degree of flexibility for
-customization not provided for using only the options.  Take nothing
-for granted and read the following carefully before configuring one
-the  subwidgets
+<p class='pMargin'> Directly accessing and configuring JComboBox's 
+subwidgets should generally be avoided when possible. For most 
+cases, options are provided which will configure the subwidgets. They
+are provided below for exceptions, and to provide a better idea of what
+a particular option will affect in the descriptions below.
 </p>
-
-
-
-
-
+<p class=pMargin>
+It's worth noting that some of the names below serve more of a functional
+purpose than purely descriptive. There are some widgets, which have names
+that may be misleading. For example, there are Labels used instead of Button
+widgets yet they still are advertised as Buttons. This is because functionally, 
+they are used like Buttons, but they do not support all the same options that Button
+widgets support. They are used instead for a more consistant appearance across
+platforms. For this reason, it's important to pay attention to the Class as well as the
+name listed in the table below.
+</p>
 
 <table width='95%' border=2 cellpadding=2>
 <tr><td colspan=2 class='subheader'><a name='wsoptions'></a>
@@ -159,15 +130,13 @@ the  subwidgets
 <tr valign=top><td width='25%'><a name='height'></a>
     <table border=0>
         <tr><th alight=right>Name:</th><td>ED_Button</td></tr>
-        <tr><th alight=right>class:</th><td>Label</td></tr>
+        <tr><th alight=right>Class:</th><td>Label</td></tr>
     </table>
 <td>
     <table>
          <tr><td>Editable Button. When the JComboBox is in <b>editable</b>
         mode, this widget is used as the 'Button' that triggers the popup 
-        listbox. Care should be taken, because it is actually a Label
-        widget, bound to act as a Button, this is mostly to work 
-        around inconsistancies with Button across platforms.
+        listbox.
         </td></tr>         
     </table>
 </td></tr>
@@ -176,7 +145,7 @@ the  subwidgets
 <tr valign=top><td width='25%'>
     <table border=0>
        <tr><th alight=right>Name:</th><td>ED_Entry</td></tr>
-        <tr><th alight=right>class:</th><td>Entry</td></tr>
+        <tr><th alight=right>Class:</th><td>Entry</td></tr>
     </table>
 <td valign=top>
     <table><tr valign=top>
@@ -190,7 +159,7 @@ the  subwidgets
 <tr valign=top><td width='25%'>
     <table border=0>
        <tr><th alight=right>Name:</th><td>Listbox</td></tr>
-        <tr><th alight=right>class:</th><td NOWRAP>Scrolled Listbox</td></tr>
+        <tr><th alight=right>Class:</th><td NOWRAP>Scrolled Listbox</td></tr>
     </table>
 <td valign=top>
     <table><tr valign=top>
@@ -204,7 +173,7 @@ the  subwidgets
 <tr valign=top><td width='25%'>
     <table border=0>
        <tr><th alight=right>Name:</th><td>Popup</td></tr>
-        <tr><th alight=right>class:</th><td>Toplevel</td></tr>
+        <tr><th alight=right>Class:</th><td>Toplevel</td></tr>
     </table>
 <td valign=top>
     <table><tr valign=top>
@@ -217,12 +186,12 @@ the  subwidgets
 <tr valign=top><td width='25%'><a name='height'></a>
     <table border=0>
         <tr><th alight=right>Name:</th><td>RO_Button</td></tr>
-        <tr><th alight=right>class:</th><td>Label</td></tr>
+        <tr><th alight=right>Class:</th><td>Label</td></tr>
     </table>
 <td>
     <table>
          <tr><td>Readonly Button. When the JComboBox is in <b>readonly</b>
-        mode, both the 'entry' and the 'button' (both labels) are used
+        mode, both the 'entry' and the 'button' (both Label widgets) are used
         as buttons that trigger the popup listbox. This widget is
         the portion of the button that displays the down arrow
         </td></tr>         
@@ -233,7 +202,7 @@ the  subwidgets
 <tr valign=top><td width='25%'>
     <table border=0>
        <tr><th alight=right>Name:</th><td>RO_Entry</td></tr>
-        <tr><th alight=right>class:</th><td>Label</td></tr>
+        <tr><th alight=right>Class:</th><td>Label</td></tr>
     </table>
 <td valign=top>
     <table><tr valign=top>
@@ -243,19 +212,14 @@ the  subwidgets
         </td></tr>         
     </table>
 </td></tr>
-
 </table>
-
-
-
-
-
 <br>
 <hr>
+
 <a name='options'><h3>OPTIONS</h3></a>
 <table width='95%' border=2 cellpadding=2>
 <tr><td colspan=2 class='subheader'><a name='wsoptions'></a>
-   &nbsp; Widget-specific Options:</td></tr>
+   &nbsp; JComboBox-defined options:</td></tr>
 <tr><td colspan=2>
 <table width='100%'>
 <tr valign=top><td NOWRAP>
@@ -293,10 +257,10 @@ the  subwidgets
 <!-- background-->
 <tr valign=top><td width='10%'><a name='bg'></a>
   <table border=0>
-        <tr><th alight=right>Name:</th><td>background</td></tr>
-        <tr><th alight=right>class:</th><td>Background</td></tr>
-        <tr><th alight=right>Switch:</th><td>-background</td></tr>
-        <tr><th alight=right>Aliases:</th><td>-bg</td></tr>  
+        <tr><th align=right>Name:</th><td>background</td></tr>
+        <tr><th align=right>Class</th><td>Background</td></tr>
+        <tr><th align=right>Switch:</th><td>-background</td></tr>
+        <tr><th align=right>Aliases:</th><td>-bg</td></tr>  
     </table>
 </td>
 <td width = '75%'>Sets the background color for the base widget, 
@@ -311,8 +275,8 @@ the  subwidgets
 <tr valign=top><td width='25%'>
     <table border=0>
        <a name='bbmp'></a> 
-        <tr><th alight=right>Switch:</th><td NOWRAP>-buttonbitmap</td></tr> 
-        <tr><th alight=right>Aliases:</th><td>-bbmp</td></tr> 
+        <tr><th align=right>Switch:</th><td NOWRAP>-buttonbitmap</td></tr> 
+        <tr><th align=right>Aliases:</th><td>-bbmp</td></tr> 
     </table>
 <td valign=top>
     <table><tr valign=top>
@@ -328,8 +292,8 @@ the  subwidgets
 <tr valign=top><td width='25%'>
     <table border=0>
        <a name='bimg'></a> 
-        <tr><th alight=right>Switch:</th><td>-buttonimage</td></tr> 
-        <tr><th alight=right>Aliases:</th><td>-bimg</td></tr> 
+        <tr><th align=right>Switch:</th><td>-buttonimage</td></tr> 
+        <tr><th align=right>Aliases:</th><td>-bimg</td></tr> 
     </table>
 <td valign=top>
     <table><tr valign=top>
@@ -345,8 +309,8 @@ the  subwidgets
 <tr valign=top><td width='25%'>
     <table border=0>
        <a name='bbd'></a> 
-        <tr><th alight=right>Switch:</th><td NOWRAP>-buttonborderwidth</td></tr> 
-        <tr><th alight=right>Aliases:</th><td>-bbd</td></tr> 
+        <tr><th align=right>Switch:</th><td NOWRAP>-buttonborderwidth</td></tr> 
+        <tr><th align=right>Aliases:</th><td>-bbd</td></tr> 
     </table>
 <td valign=top>
     <table><tr valign=top>
@@ -361,8 +325,8 @@ the  subwidgets
 <tr valign=top><td width='25%'>
     <table border=0>
        <a name='brelief'></a> 
-        <tr><th alight=right>Switch:</th><td>-buttonrelief</td></tr> 
-        <tr><th alight=right>Aliases:</th><td>-brelief</td></tr> 
+        <tr><th align=right>Switch:</th><td>-buttonrelief</td></tr> 
+        <tr><th align=right>Aliases:</th><td>-brelief</td></tr> 
     </table>
 <td valign=top>
     <table><tr valign=top>
@@ -376,8 +340,8 @@ the  subwidgets
 <!-- choices-->
 <tr valign=top><td width='25%'><a name='choices'></a>
     <table border=0 valign=top>
-        <tr><th alight=right>Switch:</th><td nowrap>-choices</td></tr>
-        <tr><th alight=right>Aliases:</th><td>-options</td></tr>  
+        <tr><th align=right>Switch:</th><td nowrap>-choices</td></tr>
+        <tr><th align=right>Aliases:</th><td>-options</td></tr>  
     </table>
 <td>
     <table>
@@ -395,7 +359,7 @@ the  subwidgets
     <table border=0 valign=top>
        <a name='font'></a> 
        <tr><th align=right>Name:</th><td NOWRAP>font</td></tr> 
-        <tr><th align=right>class:</th><td>Font</th></tr> 
+        <tr><th align=right>Class</th><td>Font</th></tr> 
         <tr><th align=right>Switch:</th><td NOWRAP>-font</td></tr> 
     </table>
 <td valign=top>
@@ -411,7 +375,7 @@ the  subwidgets
     <table border=0>
        <a name='gap'></a>
          <tr><th align=right>Name:</th><td>gap</td></tr> 
-        <tr><th align=right>class:</th><td>Gap</td></tr>        
+        <tr><th align=right>Class</th><td>Gap</td></tr>        
         <tr><th align=right>Switch:</th><td>-gap</td></tr> 
     </table>
 <td valign=top>
@@ -428,7 +392,7 @@ the  subwidgets
     <table border=0>
        <a name='listhighlight'></a> 
        <tr><th align=right>Name:</th><td NOWRAP>listHighlight</td></tr> 
-       <tr><th align=right>class:</th><td NOWRAP>ListHighlight</td></tr> 
+       <tr><th align=right>Class</th><td NOWRAP>ListHighlight</td></tr> 
        <tr><th align=right>Switch:</th><td NOWRAP>-listhighlight</td></tr> 
     </table>
 <td valign=top>
@@ -467,7 +431,7 @@ the  subwidgets
     <table border=0>
        <a name='mode'></a> 
         <tr><th align=right>Name:</th><td NOWRAP>mode</td></tr> 
-        <tr><th align=right>class:</th><td>Mode</td></tr> 
+        <tr><th align=right>Class</th><td>Mode</td></tr> 
         <tr><th align=right>Switch:</th><td NOWRAP>-mode</td></tr> 
     </table>
 <td valign=top>
@@ -487,7 +451,7 @@ the  subwidgets
     <table border=0>
        <a name='pbg'></a> 
         <tr><th align=right>Name:</th><td>popupBackground</td></tr> 
-        <tr><th align=right>class:</th><td>PopupBackground</td></tr> 
+        <tr><th align=right>Class</th><td>PopupBackground</td></tr> 
         <tr><th align=right>Switch:</th><td nowrap>-popupbackground</td></tr> 
         <tr><th align=right>Aliases:</th><td>-pbg</td></tr> 
     </table>
@@ -505,7 +469,7 @@ the  subwidgets
     <table border=0>
        <a name='pbd'></a> 
         <tr><th align=right>Name:</th><td>popupborderwidth</td></tr> 
-        <tr><th align=right>class:</th><td>Popupborderwidth</td></tr> 
+        <tr><th align=right>Class</th><td>Popupborderwidth</td></tr> 
         <tr><th align=right>Switch:</th><td nowrap>-popupborderwidth</td></tr> 
         <tr><th align=right>Aliases:</th><td>-pbd</td></tr> 
     </table>
@@ -525,7 +489,7 @@ the  subwidgets
     <table border=0>
        <a name='prelief'></a> 
         <tr><th align=right>Name:</th><td>popupRelief</td></tr> 
-        <tr><th align=right>class:</th><td>PopupRelief</td></tr> 
+        <tr><th align=right>Class</th><td>PopupRelief</td></tr> 
         <tr><th align=right>Switch:</th><td nowrap>-popuprelief</td></tr> 
         <tr><th align=right>Aliases:</th><td>-prelief</td></tr> 
     </table>
@@ -542,7 +506,7 @@ the  subwidgets
     <table border=0>
        <a name='selbg'></a> 
         <tr><th align=right>Name:</th><td>selectBackground</td></tr> 
-        <tr><th align=right>class:</th><td>SelectBackground</td></tr> 
+        <tr><th align=right>Class</th><td>SelectBackground</td></tr> 
         <tr><th align=right>Switch:</th><td nowrap>-selectBackground</td></tr> 
         <tr><th align=right>Aliases:</th><td>-selectbg</td></tr> 
     </table>
@@ -560,7 +524,7 @@ the  subwidgets
     <table border=0>
        <a name='selectcommand'></a> 
         <tr><th align=right>Name:</th><td>selectCommand</td></tr> 
-        <tr><th align=right>class:</th><td>selectCommand</td></tr> 
+        <tr><th align=right>Class</th><td>selectCommand</td></tr> 
         <tr><th align=right>Switch:</th><td nowrap>-selectcommand</td></tr> 
         <tr><th align=right>Aliases:</th><td>-scmd</td></tr> 
     </table>
@@ -579,7 +543,7 @@ the  subwidgets
     <table border=0>
        <a name='selfg'></a> 
         <tr><th align=right>Name:</th><td>selectForeground</td></tr> 
-        <tr><th align=right>class:</th><td>SelectForeground</td></tr> 
+        <tr><th align=right>Class</th><td>SelectForeground</td></tr> 
         <tr><th align=right>Switch:</th><td nowrap>-selectForeground</td></tr> 
         <tr><th align=right>Aliases:</th><td>-selectfg</td></tr> 
     </table>
@@ -597,7 +561,7 @@ the  subwidgets
     <table border=0>
        <a name='selfg'></a> 
         <tr><th align=right>Name:</th><td>state</td></tr> 
-        <tr><th align=right>class:</th><td>State</td></tr> 
+        <tr><th align=right>Class</th><td>State</td></tr> 
         <tr><th align=right>Switch:</th><td nowrap>-state</td></tr> 
     </table>
 <td valign=top>
@@ -616,7 +580,7 @@ the  subwidgets
     <table border=0>
        <a name='textvar'></a> 
         <tr><th align=right>Name:</th><td>textVariable</td></tr> 
-        <tr><th align=right>class:</th><td>Variable</td></tr> 
+        <tr><th align=right>Class</th><td>Variable</td></tr> 
         <tr><th align=right>Switch:</th><td nowrap>-textvariable</td></tr> 
     </table>
 <td valign=top>
@@ -639,7 +603,7 @@ the  subwidgets
     <table border=0>
        <a name='validate'></a> 
         <tr><th align=right>Name:</th><td>validate</td></tr> 
-        <tr><th align=right>class:</th><td>Validate</td></tr> 
+        <tr><th align=right>Class</th><td>Validate</td></tr> 
         <tr><th align=right>Switch:</th><td nowrap>-validate</td></tr> 
     </table>
 <td valign=top>
@@ -661,7 +625,7 @@ the  subwidgets
 
 <table width='95%' border=2 cellpadding=2>
 <tr><td colspan=2 class='subheader'><a name='inhoptions'></a>
-   &nbsp; Inherited Options:</td></tr>
+   &nbsp; Options inherited from Frame:</td></tr>
 <tr><td colspan=2>
 <table width='100%'>
 <tr valign=top><td NOWRAP>

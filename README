@@ -18,13 +18,11 @@ directory,
 ACKNOWLEDGEMENTS:
 
 This code started out as Graham Barr's MenuEntry. I liked 
-MenuEntry and thought it had lots of promise. So I decided to 
-add to it.The more I added (and subtracted), the less it 
-looked like like MenuEntry until it got to the point where 
-calling it MenuEntry no longer made sense. Thank you Graham 
-for provided the fertile soil from which JComboBox grew. Perhaps
-someone else will take this widget in directions I hadn't 
-forseen as I took yours. - RCS 
+MenuEntry a lot, but it stopped short of what I needed. So I 
+decided to add to it. The more I added (and subtracted), the 
+less it  looked like like MenuEntry until it got to the point 
+where calling it MenuEntry no longer made sense. Thank you Graham 
+for provided the fertile soil from which JComboBox grew. - RCS 
 
 INSTALLATION:
 
@@ -44,5 +42,18 @@ Cheers!
 
 Rob Seegel
 15 May 2001
+
+
+Changes:
+
+Version: 0.02
+
+  - Fixed a bug which affected editable mode. It would cause the
+    incorrect value to be returned if a user typed in an alternate
+    value than one on the list. The bug existed in the getSelectedValue()
+    method.
+
+  - Reviewed and slightly tweaked some wording in the docs.
+
 
 
