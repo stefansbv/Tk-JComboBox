@@ -502,8 +502,6 @@ sub TestState
    $mw->update;
    $b1->focusForce;
 
-   MainLoop;
-
    $b1->focusNext;
    $w = $mw->focusCurrent;
    is(ref($w), 'Tk::Entry') if $mode eq 'editable';
