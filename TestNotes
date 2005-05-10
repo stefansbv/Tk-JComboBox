@@ -1,0 +1,43 @@
+## Just a few notes to server as a quick quide for troubleshooting
+## unit tests
+
+
+02_Options_Basic:  219
+--------------------------
+arrowbitmap        1-4
+arrowimage         5-10
+background         11-18
+borderwidth        19-23
+cursor             24-35
+entrybackground    36-49
+entrywidth         50-58
+font               59-82
+foreground         83-94
+gap                95-99
+highlightthickness 100-108
+highlight          109-128
+listwidth          129-135
+pady               136-141
+relief             142-151
+selectbackground   152-161
+selectforeground   162-171
+selectborderwidth  172-181
+takefocus          182-207
+textvariable       208-219
+
+03_Opions_Callback   73
+---------------------------
+buttoncommand      1-16
+keycommand         17-22
+popupcreate/modify 23-50
+selectcommand      51-63
+validation         64-73
+
+04_Options_Misc    229
+---------------------------
+autofind           1-93
+choices            94-142
+listhighlight      143-161
+maxrows            162-177
+state              178-187
+updownselect       188-229

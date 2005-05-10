@@ -1,5 +1,26 @@
 Revision history for Perl extension Tk::JComboBox.
 
+1.06 Bug Fix for JComboBox, fixes to Test Code
+
+   - Ken Prows reported bug to CPAN Bug Tracker #12372
+     JComboBox was interfering with grab. Ken suggested
+     a solution, which I added. 
+
+     - Added a test to 06_Bugs.t to test the new code.
+     - Updated docs to add some mention of grab issues.
+
+   - Testers reported several issues with test cases, and 
+     I think I have worked at least some of these out.
+
+     - Found spots where I wasn't destroying a JCombobox
+       between test cases which fouled up a few tests. Fixed it.
+   
+     - Used carp to print labels for tests, so that I can track
+       problems more efficiently. My own tests work fine on WinXP
+       and Fedora 2 (using Gnome & KDE).
+
+     - Removed line feeds from tests.
+
 1.05 Updated Test Code - No changes to any of the Modules!
     
    - Failed Test Report:

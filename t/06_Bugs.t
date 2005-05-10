@@ -4,7 +4,7 @@
 use Carp;
 use Tk;
 use Tk::JComboBox;
-use Test::More tests => 16;
+use Test::More tests => 28;
 
 my $mw = MainWindow->new;
 
@@ -20,8 +20,28 @@ my $mw = MainWindow->new;
 ## sub only highlights the choice that begins with the 
 ## letter. It does not scroll down/up so that it is viewable. 
 ###########################################################
+carp "\n\nTest Item Visible After AutoFind\n";
 TestItemVisibleAfterAutoFind("readonly");
 TestItemVisibleAfterAutoFind("editable");
+
+###########################################################
+## ID: CPAN #12372 - Reported By Ken Prows
+## BUG: grab function in JComboBox makes it unusable in 
+## dialog boxes.
+## --------------------------------------------------------
+## grabGlobal/grabRelease in showPopup/hidePopup methods
+## interfere with grab used by Dialogs. If a JCombobox was
+## used within any widget that did a grab or grabGlobal, then
+## when the JComboBox's popup was displayed, it would steal the
+## grab from the original widget. When the popup was hidden,
+## the grab would be released AND NOT RETURNED to the original 
+## widget as expected. Ken submitted a patch which I reformatted
+## slightly and included. Thanks!
+###########################################################
+carp "\nTest that stolen grab (local) was returned\n";
+TestThatStolenGrabWasReturned('local');
+carp "\nTest that stolen grab (global) was returned\n";
+TestThatStolenGrabWasReturned('global');
 
 ############################################################
 ## Test Subroutines
@@ -49,6 +69,32 @@ sub TestItemVisibleAfterAutoFind
    carp "\nFail - TestItemVisibleAfterAutoFind($mode): $@" if $@;
 }
 
+sub TestThatStolenGrabWasReturned
+{
+   my $grabType = shift;
+   my $jcb = $mw->JComboBox(-choices => [qw/one two three/])->pack;
+   $mw->update;
+
+   $mw->grab       if $grabType eq 'local';
+   $mw->grabGlobal if $grabType eq 'global';
+
+   is(ref($mw->grabCurrent), "MainWindow");
+   is($mw->grabStatus, $grabType);
+
+   $jcb->showPopup;
+
+   my $widget = $mw->grabCurrent;
+   is(ref($widget), "Tk::JComboBox");
+   is($widget->grabStatus, "global");
+
+   $jcb->hidePopup;
+   is(ref($mw->grabCurrent), "MainWindow");
+   is($mw->grabStatus, $grabType);
+
+   $mw->grabRelease;
+   $jcb->destroy;
+}
+
 sub checkItemVisibility 
 {
    my ($jcb, $key, $expectedIndex) = @_;
@@ -57,15 +103,18 @@ sub checkItemVisibility
    my $entry = $jcb->Subwidget('Entry');
    my $listbox = $jcb->Subwidget('Listbox');
 
-   $entry->focus;
-   $entry->eventGenerate('<KeyPress>', -keysym => $key);
+   $entry->focusForce;
+   $entry->insert(0, $key) if $jcb->mode() eq "editable";
+   $jcb->AutoFind($key, $key);
    my ($index) = $listbox->curselection;
 
    ## Was the expected Index selected?
    is($index, $expectedIndex); 
    
    my $result = "visible";
-   $result = "not visible" if $listbox->bbox($index) eq "";
+   if (!defined($index) || $listbox->bbox($index) eq "") {
+      $result = "not visible";
+   }
    is($result, "visible");
 }
 

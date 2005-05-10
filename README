@@ -1,7 +1,7 @@
-Tk/JComboBox version 1.05
+Tk/JComboBox version 1.06
 =========================
 
-  [Updated Test Code in release - No Changes in JComboBox from 1.04]
+  [Bug fix in JComboBox - grab was improperly handled - updated unit tests]
   
 JComboBox is a ComboBox implementation that combines several features of the various Combo Box implementations available for Perl/Tk and attempts to provide a solution that should cover the majority of your Combo Box needs. The implementation tends to skew somewhat towards the Java and Win32 implementation of a Combo Box more than the Motif one, however it can be configured with little trouble to mimic the Motif implementation if desired.
 
@@ -9,57 +9,18 @@ There have been SEVERAL changes since the 0.02 version of this widget -- hopeful
 
 I expect that this will be the last major release of JComboBox, barring bug fixes. I've been working on migrating the JComboBox codebase to a new distribution that I hope to make available on CPAN. JComboBox will become Tk::CWidget::ComboBox in that distribution - I've become a little uneasy about keeping the name as the Java implementation. Other than that, the widget will be mostly unchanged. Newer features will show up in that version and not this one. Thanks to everyone who contributed suggestions, code, and misc feedback. I hope this widget is useful for others.
 
-  If you use Tk::JComboBox on a Windows machine, use your own 
-best judgement before upgrading your module. No new functionality
-has been added. Code was added to accommodate test failures
-reported in other platforms - failures that did not occur on 
-my Windows test machines. The new code still does not trigger
-any errors on my windows test machines. 
 
-  Still seeing failures from testers! I expected some errors,
-but I expected fewer of them this time around. Well, a few
-lessons learned:
+Notes for 1.06 release:
 
-  - ALWAYS use PREREQ_PM in Makefile.PL if you have prereqs, 
-    I can't believe I'd forgotten to do this!
+  This release includes a fix for a minor bug where JComboBox could interfere with DialogBox's or any other widget that needed to use grab/grabGlobal. Ken Prows discovered the bug, and provided a patch for the problem. I added a test case to test that the new code works as expected.  
 
-  - To the greatest extent possible, attempt to make the tests
-    bomb-proof. That is, having a HUGE test script is worthless
-    if that script bombs out in the first test, and dies, eval
-    is your friend!
+  I've also tried to go through and remove line feeds from the code, and I've taken another crack at repairing the test cases (I'm cautiously optimistic that they will work.) The Test suite may have been a bit ambititious and even overzealous, but I'm trying to make it work. See Changes for more details. 
 
-    The error messages I've gotten in the test report haven't been
-    too useful. Hopefully, that will change with this release.
-
-1.05 Updated Test Code - No changes to any of the Modules!
-    
-   - Failed Test Report:
-     http://www.nntp.perl.org/group/perl.cpan.testers/188280
-     By cpan@www.interlab.nl
-  
-     Reported that I'd Forgotten PREREQ_PM - (how embarrassing)
-       - Modfied Makefile.PL accordingly.  
-     
-   - Failed Test Report:
-     http://www.nntp.perl.org/group/perl.cpan.testers/188015
-     by: saper@cpan.org
-
-     I hope Sébastien doesn't give up on me and stop testing this
-     module. I expected it would fail, since I wasn't entirely
-     certain what had failed. Unfortunately, this error report
-     was tougher to get anything out of than the last one, and the
-     fault lies solely with me, since my scripts were apparently 
-     so brittle that a few of them died before running even ONE
-     test!
-
-     - Modified test scripts making extensive use of eval blocks
-     so that problems with one test would kill the entire script.
-     Hopefully, the carp calls I've added will give me more helpful
-     information on what's going wrong, so that I can fix it. 
-
+  I'd like to say thank you to Ken Prows (for bug reports, scripts that show the problem, and patches!), Todd Beverly, Paul Allen, Zentara, Corion, Saper, and any others who have run the tests on different machines for me.
 
 
 INSTALLATION
+
 
 To install this module type the following:
 

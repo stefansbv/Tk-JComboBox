@@ -54,24 +54,28 @@ my $mw = MainWindow->new();
 #####################
 ## -arrowbitmap (2)
 #####################
+carp "\n\nTest arrowbitmap:\n";
 TestArrowbitmap('editable');
 TestArrowbitmap('readonly');
 
 #####################
 ## -arrowimage (3)
 #####################
+carp "\nTest arrowimage\n";
 TestArrowimage('editable');
 TestArrowimage('readonly');
 
 #####################
 ## -background 
 #####################
+carp "\nTest background\n";
 checkDescendantsTest("editable", -background => 'gray');
 checkDescendantsTest("readonly", -background => 'gray');
 
 #####################
 ## -borderwidth
 #####################
+carp "\nTest borderwidth:\n";
 checkDefaultValue(-borderwidth => 2);
 checkCreateGetSet("editable", -borderwidth => 5, ['Frame']);
 checkCreateGetSet("readonly", -borderwidth => 5, ['Frame']);
@@ -79,12 +83,14 @@ checkCreateGetSet("readonly", -borderwidth => 5, ['Frame']);
 #####################
 ## -cursor
 #####################
+carp "\nTest cursor:\n";
 checkDescendantsTest("editable", -cursor => 'left_ptr');
 checkDescendantsTest("readonly", -cursor => 'left_ptr');
 
 #####################
 ## -entrybackground
 #####################
+carp "\nTest entrybackground:\n";
 checkCreateGetSet('editable',
    -entrybackground => 'blue', 
    [[Entry => '-background'],
@@ -99,6 +105,7 @@ checkCreateGetSet('readonly',
 #####################
 ## -entrywidth
 #####################
+carp "\nTest entrywidth:\n";
 checkDefaultValue(-entrywidth => -1);
 checkCreateGetSet('editable', -entrywidth => 5, [[Entry => '-width']]);
 checkCreateGetSet('readonly', -entrywidth => 5, [[Entry => '-width']]);
@@ -106,12 +113,14 @@ checkCreateGetSet('readonly', -entrywidth => 5, [[Entry => '-width']]);
 #####################
 ## -font
 #####################
+carp "\nTest font:\n";
 TestFont('editable');
 TestFont('readonly');
 
 #####################
 ## -foreground
 #####################
+carp "\nTest foreground:\n";
 checkCreateGetSet("editable",
    -foreground => 'red', [qw/Entry Listbox/]);
 checkCreateGetSet("readonly",
@@ -120,6 +129,7 @@ checkCreateGetSet("readonly",
 #####################
 ## -gap
 #####################
+carp "\nTest gap:\n";
 checkDefaultValue(-gap => 0);
 checkCreateGetSet("editable", -gap => 2);
 checkCreateGetSet("readonly", -gap => 2);
@@ -127,6 +137,7 @@ checkCreateGetSet("readonly", -gap => 2);
 #####################
 ## -highlightthickness
 #####################
+carp "\nTest highlightthickness:\n";
 checkDefaultValue(-highlightthickness => 0);
 checkCreateGetSet("editable", -highlightthickness => 2, ['Frame']);
 checkCreateGetSet("readonly", -highlightthickness => 2, ['Frame']);
@@ -135,12 +146,14 @@ checkCreateGetSet("readonly", -highlightthickness => 2, ['Frame']);
 ## -highlightcolor and
 ## -highlightbackground
 #####################
+carp "\nTest highlight:\n";
 TestHighlight('editable');
 TestHighlight('readonly');
 
 #####################
 ## -listwidth
 #####################
+carp "\nTest listwidth:\n";
 checkDefaultValue(-listwidth => -1);
 TestListwidth('editable');
 TestListwidth('readonly');
@@ -148,18 +161,21 @@ TestListwidth('readonly');
 #####################
 ## -pady
 #####################
+carp "\nTest pady:\n";
 TestPadY('editable');
 TestPadY('readonly');
 
 #####################
 ## -relief
 #####################
+carp "\nTest relief:\n";
 TestRelief("editable", "sunken");
 TestRelief("readonly", "groove");
 
 #####################
 ## -selectbackground
 #####################
+carp "\nTest selectbackground:\n";
 checkCreateGetSet('editable', 
    -selectbackground => 'gray', 
    [qw/Entry Listbox/]);
@@ -171,6 +187,7 @@ checkCreateGetSet('readonly',
 #####################
 ## -selectforeground
 #####################
+carp "\nTest selectforeground:\n";
 checkCreateGetSet('editable', 
    -selectforeground => 'gray', 
    [qw/Entry Listbox/]);
@@ -182,6 +199,7 @@ checkCreateGetSet('readonly',
 #####################
 ## -selectborderwidth
 #####################
+carp "\nTest selectborderwidth:\n";
 checkCreateGetSet('editable', 
    -selectborderwidth => 4, 
    [qw/Entry Listbox/]);
@@ -193,12 +211,14 @@ checkCreateGetSet('readonly',
 #####################
 ## -takefocus
 #####################   
+carp "\nTest takefocus:\n";
 TestTakeFocus('readonly');
 TestTakeFocus('editable');
 
 #####################
 ## -textvariable
 #####################
+carp "\nTest TextVariable:\n";
 TestTextVariable('readonly');
 TestTextVariable('editable');
 
@@ -275,10 +295,12 @@ sub checkDefaultValue
 sub checkFont
 {
    my ($w, $font) = @_;
-   is($w->cget('-font')->configure(-family), 
-      $font->configure(-family));
-   is($w->cget('-font')->configure(-size),
-      $font->configure(-size));      
+   eval {
+      my $wFont = $w->cget('-font');
+      is($wFont->configure('-family'), $font->configure('-family'));
+      is($wFont->configure('-size'),   $font->configure('-size'));
+   };
+   carp "Fail - checkFont: $@" if $@;      
 }
 
 sub checkSubwidgetOption 
@@ -395,12 +417,13 @@ sub TestFont
       checkFont($jcb->Subwidget('Listbox'), $font);
       checkFont($jcb->Subwidget('Entry'), $font);
       $jcb->destroy;
-
+ 
       $jcb = $main->JComboBox(-mode => $mode);
       $jcb->configure(-font => $font);
       checkFont($jcb, $font);
       checkFont($jcb->Subwidget('Entry'), $font);
       checkFont($jcb->Subwidget('Listbox'), $font);
+
       $main->destroy;
    };
    carp "\nFail - TestFont($mode): $@" if $@;

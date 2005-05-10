@@ -27,36 +27,42 @@ my $mw = MainWindow->new;
 #####################
 ## -autofind
 #####################
+carp "\n\ntesting autofind:\n";
 TestAutoFind('readonly'); 
 TestAutoFind('editable'); 
 
 #####################
 ## -choices/options
 #####################
+carp "\ntesting choices:\n";
 TestChoices("-choices");
 TestChoices("-options");
 
 #####################
 ## -listhighlight
 #####################
+carp "\ntesting listhighlight:\n";
 TestListhighlight('editable');
 TestListhighlight('readonly');
 
 #####################
 ## -maxrows
 #####################
+carp "\ntesting maxrows:\n";
 TestMaxRows('editable');
 TestMaxRows('readonly');
 
 #####################
 ## -state
 #####################
+carp "\ntesting state:\n";
 TestState('editable');
 TestState('readonly');
 
 #####################
 ## -updownselect
 #####################
+carp "\ntesting updownselect:\n";
 TestUpDownSelect('readonly');
 TestUpDownSelect('editable');
 
@@ -541,7 +547,7 @@ sub TestState
       $w = $mw->focusCurrent;
       is(ref($w), 'Tk::Button');
       is($w->cget('-text'), 'two');
-
+ 
       $jcb->configure(-state => 'disabled');
       
       $b1->focusForce;

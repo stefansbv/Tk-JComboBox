@@ -27,6 +27,7 @@ my $mw = MainWindow->new;
 #####################
 ## -buttoncommand
 #####################
+carp "\n\ntesting buttoncommand:\n";
 TestButtonCommand('readonly', [1, 2, 3]);
 TestButtonCommand('editable', [1, 2, 2]);
 
@@ -34,6 +35,7 @@ TestButtonCommand('editable', [1, 2, 2]);
 ## -keycommand 
       my $unexpectedOption = 0;
 #####################
+carp "\ntesting keycommand: \n";
 TestKeyCommand("readonly");
 TestKeyCommand("editable");
 
@@ -41,6 +43,7 @@ TestKeyCommand("editable");
 ## -popupcreate
 ## -popupmodify
 #####################
+carp "\ntesting popupcreate/modify:\n";
 TestPopup('create', 'readonly');
 TestPopup('create', 'editable');
 
@@ -53,12 +56,14 @@ TestCreateModifyPopup('editable');
 #####################
 ## -selectcommand
 #####################
+carp "\ntesting selectcommand:\n";
 TestSelectCommand('editable');
 TestSelectCommand('readonly');
 
 ###################################
 ## Validation Testing
 ###################################
+carp "\ntesting validation:\n";
 TestValidation();
 
 ## Cleanup
@@ -248,10 +253,13 @@ sub TestSelectCommand
       $jcb->clearSelection;
       $cb = 0;
 
+      $jcb->destroy;
+
       ## TODO: This test routine should probably be expanded to include
       ## event handling.
    };
    carp "\nFail - TestSelectCommand($mode): $@" if $@;
+   
 }
 
 sub TestValidation
@@ -269,6 +277,8 @@ sub TestValidation
             return 1;
          }
       );
+
+
       my $entry = $jcb->Subwidget('Entry');
       $entry->focusForce;
       $mw->update;
@@ -285,7 +295,7 @@ sub TestValidation
       );
       $entry = $jcb->Subwidget('Entry');
       $entry->focusForce;
-   
+
       $entry->eventGenerate('<KeyPress>', -keysym => 'o');
       $entry->eventGenerate('<KeyPress>', -keysym => 'n');
       $entry->eventGenerate('<KeyPress>', -keysym => 'e');
@@ -296,12 +306,14 @@ sub TestValidation
       $mw->update;
       is($jcb->getSelectedValue, 'one');
       
-      $entry->delete(0, 'end');
+      $jcb->clearSelection;
       $jcb->configure(-validate => 'cs-match');
+ 
       $entry->eventGenerate('<KeyPress>', -keysym => 'o');
       $entry->eventGenerate('<KeyPress>', -keysym => 'n');
       $entry->eventGenerate('<KeyPress>', -keysym => 'e');
       $mw->update;
+
       is($jcb->getSelectedValue, 'o');
       $jcb->destroy;
    };

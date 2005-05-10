@@ -446,7 +446,7 @@ Selects the list item at the specified I<index>, and has no effect if the specif
 
 =item I<$jcb-E<gt>>B<showPopup>()
 
-Displays the popup listbox if hidden (noramlly triggered by JComboBox button, or one of the key bindings. This method invokes CALLBACK registered to B<-menucreate>, which defaults to the I<ShowPopup> method.
+Displays the popup listbox if hidden (noramlly triggered by JComboBox button, or one of the key bindings. This method invokes CALLBACK registered to B<-menucreate>, which defaults to the I<ShowPopup> method. When this method is called, it will make a globalGrab, and will temporarily steal grab from any other window that made a grab. Call "hidePopup" to release the grab and return it to whatever widget had it before this method was called. This is useful when using JComboBox within DialogBox widgets.
 
 =back
 
@@ -582,7 +582,7 @@ MatchEntry is an Entry/Listbox combination maintained by Wolfgang Hommel that is
 
 =head1 VERSION
 
-This document covers the 1.04 release of JComboBox.
+This document covers the 1.06 release of JComboBox.
 
 =head1 AUTHOR
 

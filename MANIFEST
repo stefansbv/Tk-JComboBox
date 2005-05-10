@@ -2,6 +2,7 @@ Changes
 Makefile.PL
 MANIFEST
 README
+TestNotes
 lib/Tk/CWidget.pm
 lib/Tk/CWidget.pod
 lib/Tk/CWidget/Util/Boolean.pm

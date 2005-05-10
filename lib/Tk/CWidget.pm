@@ -1,5 +1,6 @@
 package Tk::CWidget;
 
+use strict;
 use Carp;
 use Tk qw(Ev);
 use Tk::CWidget::Util::Boolean qw(IsTrue);

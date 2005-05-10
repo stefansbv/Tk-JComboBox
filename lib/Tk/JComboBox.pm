@@ -29,7 +29,7 @@ use Tk::CWidget;
 use Tk::CWidget::Util::Boolean qw(:all);
 
 use vars qw($VERSION);
-$VERSION = "1.05";
+$VERSION = "1.06";
 
 BEGIN
 {
@@ -425,7 +425,8 @@ sub state
 ## either of these two options are set, then a default validatecommand will
 ## be used.
 #############################################################################
-sub validate {
+sub validate 
+{
    my ($cw, $mode) = @_;
 
    return $cw->{Configure}{'-validate'} unless $mode;
@@ -441,7 +442,8 @@ sub validate {
    ## mode is passed directly to the Entry widget's validate option.
 
    my $entry = $cw->Subwidget('Entry');
-   if ($mode =~ /match/) {
+   if ($mode =~ /match/)
+   {
       $entry->configure(
          -validate => 'key',
       );
@@ -566,12 +568,20 @@ sub hidePopup
 {
    my ($cw) = @_;
    my $popup = $cw->Subwidget('Popup');
+   return unless $popup->ismapped;
 
-    if ($popup->ismapped) {
-	$popup->withdraw;
-	$cw->grabRelease;
-    }
+   $popup->withdraw;
+   $cw->grabRelease;
+
+   ## PATCH (submitted by Ken Prows for CPAN bug#12372)
+   if ($Tk::oldGrab and $Tk::oldGrabStatus)
+   {
+      $Tk::oldGrab->grab       if $Tk::oldGrabStatus eq 'local';
+      $Tk::oldGrab->grabGlobal if $Tk::oldGrabStatus eq 'global';
+   }
+   ## END PATCH
 }
+
 
 sub index
 {
@@ -733,19 +743,30 @@ sub showPopup
    $popup->deiconify;
    $popup->raise;
    $cw->Subwidget('Entry')->focus;
+
+   ## PATCH (submitted by Ken Prows for CPAN BUG#12372)
+   if ($cw->grabCurrent)
+   {
+      $Tk::oldGrab = $cw->grabCurrent;
+      $Tk::oldGrabStatus = $Tk::oldGrab->grabStatus;      
+   }
+   ## END PATCH
+
    $cw->grabGlobal;
 }
 
-## ======================================================================= ##
-## Private Methods - avoid calling these directly - they may change        ##
-## ======================================================================= ##
+## ===================================================================== ##
+## Private Methods - avoid calling these directly - they may change      ##
+## ===================================================================== ##
 
 sub AutoFind
 {
    my ($cw, $letter, $key) = @_;
 
-   ## Determine if autofind is enabled/disabled return immediately if disabled.
-   ## No need to continue if AutoFind is disabled
+   ## Determine if autofind is enabled/disabled return 
+   ## immediately if disabled. No need to continue if AutoFind 
+   ## is disabled
+
    my $params      = $cw->cget('-autofind') || {};
    my $enabledOpt  = GetProperty('-enable' ,       $params, TRUE);
    my $casesensOpt = GetProperty('-casesensitive', $params, FALSE);
@@ -775,8 +796,9 @@ sub AutoFind
       return;
    }
 
-   ## -casesensitive option: if enabled then distinguishes between a k and K
-   ## key press or search string.
+   ## -casesensitive option: if enabled then distinguishes 
+   ## between a k and K key press or search string.
+
    my $csVal = "ignorecase"; 
    $csVal = "usecase" if IsTrue($casesensOpt);
 
