@@ -20,7 +20,7 @@ use strict;
 
 use Tk;
 use Tk::JComboBox;
-use Test::More tests => 229;
+use Test::More tests => 254;
 
 my $mw = MainWindow->new;
 
@@ -28,8 +28,8 @@ my $mw = MainWindow->new;
 ## -autofind
 #####################
 carp "\n\ntesting autofind:\n";
-TestAutoFind('readonly'); 
-TestAutoFind('editable'); 
+TestAutoFind('readonly');
+TestAutoFind('editable');
 
 #####################
 ## -choices/options
@@ -37,6 +37,91 @@ TestAutoFind('editable');
 carp "\ntesting choices:\n";
 TestChoices("-choices");
 TestChoices("-options");
+
+####################################
+carp "\nTest Choices - FETCHSIZE\n";
+####################################
+my @list = (qw/one two three/);
+my @list2 = (qw/four five six/);
+my $jcb = setup("pack", -choices => \@list);
+
+is(scalar(@list), 3);
+$jcb->removeItemAt(0);
+is(scalar(@list), 2);
+
+###################################
+carp "\nTest Choices - CLEAR\n";
+###################################
+@list = ();
+is($jcb->getItemCount, 0);
+
+###################################
+carp "\nTest Choices - PUSH\n";
+###################################
+push(@list, @list2);
+is($jcb->getItemCount, 3);
+is($jcb->getItemNameAt(0), "four");
+is($jcb->getItemNameAt(1), "five");
+is($jcb->getItemNameAt(2), "six");
+push(@list, @list2);
+is($jcb->getItemCount, 6);
+
+###################################
+carp "\nTest Choices - POP\n";
+###################################
+my $item = pop @list;
+is($item, "six");
+is($jcb->getItemCount, 5);
+
+###################################
+carp "\nTest Choices - SHIFT\n";
+###################################
+$item = shift @list;
+is($item, "four");
+is($jcb->getItemCount, 4);
+is($jcb->getItemNameAt(0), "five");
+
+###################################
+carp "\nTest Choices - STORE\n";
+###################################
+@list = (qw/one two three/);
+is($jcb->getItemCount, 3);
+is($jcb->getItemNameAt(0), "one");
+is($jcb->getItemNameAt(1), "two");
+is($jcb->getItemNameAt(2), "three");
+
+$list[2] = "four";
+is($jcb->getItemNameAt(2), "four");
+$jcb->removeAllItems;
+
+###################################
+carp "\n\nTest Choices - FETCH\n";
+###################################
+$jcb->addItem("five");
+$jcb->addItem("four");
+$jcb->addItem("three");
+
+is($list[0], "five");
+is($list[1], "four");
+is($list[2], "three");
+
+###################################
+carp "\nTest Choices - UNSHIFT\n";
+###################################
+unshift @list, (1, 2, 3);
+is($jcb->getItemCount, 6);
+is($list[0], 1);
+is($list[1], 2);
+is($list[2], 3);
+
+###################################
+carp "\nTest Choices - DELETE\n";
+###################################
+delete $list[0];
+is($jcb->getItemCount, 5);
+is($list[0], 2);
+$jcb->destroy;
+
 
 #####################
 ## -listhighlight
@@ -212,7 +297,7 @@ sub TestAutoFindComplete
       is($entry->get, 'two');
       is($entry->index('sel.first'), 1);
       is($entry->index('sel.last'), 3);
-      
+
       checkListboxSelection($jcb, 'h', 2);
       is($jcb->getSelectedValue, 'th');
       is($entry->get, 'three');
@@ -234,11 +319,11 @@ sub TestAutoFindDefaults
       my $entry = $jcb->Subwidget('Entry');
       my $lb = $jcb->Subwidget('Listbox');
       $entry->focusForce;
-      
+
       checkListboxSelection($jcb, 'o', 0);
       is($jcb->getSelectedIndex, -1, '-select is off by default'); 
       is($jcb->popupIsVisible, 1, '-showpopup is on by default');
-      
+
       checkListboxSelection($jcb, 'z', undef);
       is($jcb->popupIsVisible, 0, 'popup should be withdrawn when no match');
       $jcb->destroy;
@@ -386,28 +471,28 @@ sub TestChoices
    TestCgetChoices($option);
 }
 
-sub TestCgetChoices 
-{ 
+
+sub TestCgetChoices
+{
    eval {
       my $option = shift;
       my $jcb = setup($option, [qw/one two/]);
       my $list = $jcb->cget($option);
 
-      is($list->[0]->{'-name'}, $jcb->getItemNameAt(0));
-      is($list->[0]->{'-value'}, $jcb->getItemValueAt(0));
-      is($list->[1]->{'-name'}, $jcb->getItemNameAt(1));
-      is($list->[1]->{'-value'}, $jcb->getItemValueAt(1));
+      is($list->[0], $jcb->getItemNameAt(0));
+      is($list->[0], $jcb->getItemValueAt(0));
+      is($list->[1], $jcb->getItemNameAt(1));
+      is($list->[1], $jcb->getItemValueAt(1));
 
-      $jcb->configure($option, 
+      $jcb->configure($option,
          [{qw/-name one -value 1/},
-	  {qw/-name two -value 2 -selected 1/}]);                          
-      $list = $jcb->cget($option);         
+	  {qw/-name two -value 2 -selected 1/}]);
+      $list = $jcb->cget($option);
  
       is($list->[0]->{'-name'}, $jcb->getItemNameAt(0));
       is($list->[0]->{'-value'}, $jcb->getItemValueAt(0));
       is($list->[1]->{'-name'}, $jcb->getItemNameAt(1));
-      is($list->[1]->{'-value'}, $jcb->getItemValueAt(1));                 
-      is($list->[1]->{'-selected'}, $jcb->getSelectedIndex);
+      is($list->[1]->{'-value'}, $jcb->getItemValueAt(1));
    };
    carp "\nFail - TestCgetChoices: $@" if $@;
 }
@@ -456,7 +541,7 @@ sub TestListhighlight
    my $mode = shift;
    checkCreateGetSet($mode, -listhighlight => 0);
    TestListhighlightMotion($mode);
-   
+
    ## TODO: Create additional tests to test <Enter> and <Leave>
 }
 
@@ -480,7 +565,7 @@ sub TestListhighlightMotion
       $b->eventGenerate('<ButtonPress-1>');
       $b->eventGenerate('<ButtonRelease-1>');
       $mw->update;
-      
+
       checkMotionOnIndex($lb, 0, undef);
       checkMotionOnIndex($lb, 1, undef);
       checkMotionOnIndex($lb, 2, undef);
@@ -547,9 +632,9 @@ sub TestState
       $w = $mw->focusCurrent;
       is(ref($w), 'Tk::Button');
       is($w->cget('-text'), 'two');
- 
+
       $jcb->configure(-state => 'disabled');
-      
+
       $b1->focusForce;
       $b1->focusNext;
       $w = $mw->focusCurrent;
@@ -566,8 +651,8 @@ sub TestUpDownSelect
    my $mode = shift;
    eval {
       checkCreateGetSet($mode, -updownselect => 0);
-      
-      my $jcb = setup('pack',   
+
+      my $jcb = setup('pack',
          -choices => [qw/one two three/],
          -mode => $mode,
          -updownselect => 1
@@ -592,6 +677,9 @@ sub TestUpDownSelect
    };
    carp "\nFail - TestUpDownSelect($mode): $@" if $@;
 }
+
+
+
 
 __END__
 

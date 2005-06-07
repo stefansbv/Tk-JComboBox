@@ -222,6 +222,14 @@ Specifies the name of a variable. The value of the variable is a text string to 
 
 Some of the options have changed names since the previous version. -menucreate/-menumodify, for example are now, -popupcreate/-popupmodify. After having now looked at the code for a year or so, the old names felt wrong. After all, it is not a menu that is displayed, its a listbox, and the two are very different. Because I had a subwidget called Popup, it seemed to make more sense to me for these options to use "popup" instead of "menu". 
 
+=item Switch: -matchcommand
+
+Specifies a function that will be used to determine whether a specified String matches a field within the popup Listbox. This callback will be invoked everytime a search for an index is done. This callback will be utilized within the I<getItemIndex> method, and through the Autofind functionality (which uses getItemIndex).
+
+Callbacks are passed at least two parameters: $searchStr and $field. I<searchStr> contains the search string. This will be the search pattern. When the -matchcommand is not set, all special regex patterns are escaped, and the search is generally anchored to the start of any string it will compared to. I<field> is a single item within the list that the searchStr is being checked against. It will either be the name, which is the String that appears in the list, or it's value. The value is non-visible element associated with the visible one. A callback should return 1 if the match succeeds, and 0 otherwise.
+
+Refer to the tutorial for more information on this option.
+
 =item Switch: -popupcreate/-listcmd
 
 Specifies a function to call when a call is made that launches the popup Listbox. There are a number of events that cause the popup to be displayed, including the showPopup method. This callback is similiar to BrowseEntry's -listcmd option, which is also available here.
@@ -261,10 +269,6 @@ B<-select> - Selects the first item in the list that matches the keystroke (in I
 B<-showpopup> - Specifies whether or not to display the Popup Listbox when a matching entry is found within the list. Defaults to B<1>.
 
 More information on this option can be found in the tutorial under L<Using Autofind|Tk::JComboBox::Tutorial/The Autofind Option>.
-
-=item Switch: -choices/-options
-
-Specifies a reference to an array to use to populate the JComboBox with entries. This option is meant to be used when creating the Widget, and reconfiguring this option will first delete any preexisting entries before adding the new ones. For more details on using this option, refer to the section in the tutorial, L<Adding entries to JComboBox|Tk::JComboBox::Tutorial/Adding Items>.
 
 =item Name: listHighlight
 
@@ -317,6 +321,22 @@ This option is only used when in I<editable> mode, and generally is exactly the 
 In addition, there are two other values: B<match> and B<cs-match> that restrict values to entries that are contained within the internal List. cs-match treats case as significant, and match does not. When used, these options effectively negate the B<editble> mode. When these values are configured, the JComboBox automatically configures its own CALLBACK for the B<-validatecommand> option.
 
 =back
+
+=head2 The Choices option
+
+=over 4
+
+=item Switch: -choices/-options
+
+Specifies a reference to an array to use to populate the JComboBox with entries. This option is meant to be used when creating the Widget, and reconfiguring this option will first delete any preexisting entries before adding the new ones. The value is expected to be an array reference. Setting the value to an empty string will remove the tie along with any existing entries.
+
+=back
+
+As of version 1.07, setting the -choices option will do more than simply populate the JComboBox's Listbox -- it will tie the internal List to the array. This means that as an alternative to using the various public methods, you can use the array as an interface. Changes made to the array will be reflected in the JComboBox, and vice versa. 
+
+As of version 1.08, a single array can be associated with multiple JComboBox instances. However, the precise behavior merits further explanation. Not all associated instances have the same relationship with the array. The first instance to be configured with the array becomes the master instance, and all other instances retain roles as observers. When changes are made to the array, both master and observers will be modified to reflect the change.Changes made to the master through its methods will reflected in the array, and those made to observers will not. If the master is reconfigured to use a different choices array, then all of the other observers will automatically be reconfigured as well. If an observer is reconfigured, then it will be the only one to be changed. If the new array is not already associated with other JComboBox instances, then the observer will become the master instance for the new array, 
+
+For more details on using this option, refer to the section in the tutorial, L<Access Through the Choices Array|Tk::JComboBox::Tutorial/Access Through the Choices Array>.
 
 =head1 METHODS
 
@@ -523,14 +543,12 @@ In the earlier example of the key press, here are some alternatives. Note that e
       return 1; ## Allow character
    }
 
-
    ## This code would be called in both modes, and after validation
    $jcb->configure(-keycommand => sub {
       my ($cw, $key, $keySym, $keySymNum) = @_;
       print "Key: $key KeySym: $keySym KeySymNum: $keySymNum\n";
       $cw->AutoFind; ## If you need AutoFind functionality
    });
-
 
    $jcb->Subwidget('Box')->bind('<KeyRelease>', [\&doSomething, $jcb]);
 
@@ -582,7 +600,7 @@ MatchEntry is an Entry/Listbox combination maintained by Wolfgang Hommel that is
 
 =head1 VERSION
 
-This document covers the 1.06 release of JComboBox.
+This document covers the 1.08 release of JComboBox.
 
 =head1 AUTHOR
 

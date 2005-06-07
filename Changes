@@ -1,5 +1,74 @@
 Revision history for Perl extension Tk::JComboBox.
 
+1.08 Bug Fixes + new Features
+
+   - Fonts still an issue for 1.07 tests; commented out tests while I 
+     rethink testing scheme.
+   
+   - Jack Dunnigan requested that the choices array be made to support
+     multiple JComboBox instances; I've put in an initial implementation
+     but I susppect that it will be refactored in the future with a 
+     better solution. Updated docs to reflect change.
+
+     -- I'm still considering a more generic solution, like the ListModel
+     in the java swing api. Something that could be reused easily for 
+     the various Tk widgets that use internal Lists.
+
+1.07 Bug Fixes + new Features
+
+   - Ken Prows reported test failure to CPAN bug tracker #12788
+     The failure was due to a font within a test not being available
+     on a test platform. 
+
+     - I've fixed this, hopefully this will fix test failures.
+   
+   - Jack Dunnigan reported a bug related to -state option: 
+     when state is disabled, then reset to normal some of the colors
+     don't switch back as they should.
+ 
+     - This has been fixed. Jack also noted that there is a lot of
+     code that seems to be unnecessary for disabled bg/fg. I agreed,
+     but this code is in place to make it backward-compatible for
+     those who have not upgraded to Tk804.* releases. Eventually, I see
+     some of this code fading away, but for now, it remains. There 
+     still seem to be issues with Tk804.* so some may not have upgraded.
+
+   - Jack Dunnigan requested the ability to tie internal state of 
+     JCombobox items to the array reference passed to the -choices 
+     option. 
+
+     - I added this new feature, and added tests, and new docs
+     in JComboBox reference and tutorial pod.
+ 
+     Notes: I hadn't thought of doing this before, and it was 
+     intriguing. It is similar in principle to how Java's swing 
+     components implement MVC. Jack suggesed Tk::Trace, however I
+     preferred Steve Lidie's Tie::Watch module. After implementing
+     most of the functionality, I discovered that Tie::Watch didn't
+     support DELETE and EXISTS (which I've come to discover have
+     limited usefulness when applied to arrays...). I notified Steve,
+     and switched to use Tie::Array instead. I plan to switch back
+     to Tie::Watch the next time there is a Tk release that includes
+     Steve's updated module. 
+
+   - Jack Dunnigan requested a way to alter how autofind anchors
+     its search string when determine whether or not a field matches.
+
+     - Implemented this with a new callback option called -matchcommand
+     This will allow someone to supply their own callback to determine
+     if an item matches or not.
+
+     Notes: I originally considering implementing this as another 
+     autofind option called -searchanchor, but ultimately decided against 
+     it, when James White commented that the option could be made even 
+     more flexible by passing a reference to a regular expression. I 
+     think that the callback approach should deliver a decent option
+     that delivers sufficient flexibility to plug in whichever approach
+     is required. I believe this option will rarely be used in any case,
+     because I question whether the resulting behavior is user friendly.
+     I'm not sure if JComboBox is the best fit for Jack's intended 
+     purpose.
+
 1.06 Bug Fix for JComboBox, fixes to Test Code
 
    - Ken Prows reported bug to CPAN Bug Tracker #12372

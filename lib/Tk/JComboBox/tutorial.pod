@@ -1,4 +1,4 @@
-=head1 Name
+=head1 NAME
 
 Exploring Tk::JComboBox - A Tutorial
 
@@ -239,9 +239,141 @@ These two methods are nearly the same. I<getItemNameAt> retrieves the displayed 
 
 It's also easy to get information about the selected item using one of the following methods: L<getSelectedIndex|Tk::JComboBox/item_getselectedindex>(), L<getSelectedName|Tk::JComboBox/item_getselectedname>(), and L<getSelectedValue|Tk::JComboBox/item_getselectedvalue>(). The first method returns the selected index, or -1 if none of the items are selected. Strictly speaking, the other two methods aren't really necessary, since a combination of I<getSelectedIndex> and I<getItemNameAt> or I<getItemValueAt> will do exactly what the I<getSelectedName> or I<getSelectedValue> methods do. They are only provided as a convenience.
 
+=head2 Access Through the Choices Array
+
+The previous sections described how to Add, Delete, and Access items within a JComboBox's popup Listbox using  methods, but as of version 1.07 there is an alternative. Operations applied to the array reference that was passed to the -choices option will be applied to the JComboBox, and vice versa. 
+
+As shown in previous sections, the following code will initialize the JComboBox's internal Listbox with the contents of the array.
+
+   use Tk;
+   use Tk::JComboBox;
+
+   my @choices = (qw/black green/, {qw/-name blue -value #0000ff/});
+ 
+   my $mw = MainWindow->new;
+   my $jcb = $mw->JComboBox(-choices => \@choices)->pack;
+
+The JCombobox created by this code will have three entries: black, green, and blue. Another item can be added using a JComboBox method, like this:
+
+   $jcb->addItem('red');
+
+The choices array will reflect the change.
+
+   ## prints "Items: 4"
+   print "Items: " . scalar(@choices) . "\n"; 
+
+   ## prints "4th Item: red"
+   print "4th Item: " . $choices[3] . "\n";
+
+The choices array can be used to change the newly added item.
+
+   $choices[3] = 'orange';
+   print "Item: " . $jcb->getItemNameAt(3) . "\n";  ## Item: orange
+
+   $choices[3] = {qw/-name yellow -value #ffff00/};
+   print "Item: "  . $jcb->getItemNameAt(3) . "\n";  ## Item: yellow
+   print "Value: " . $jcb->getItemValueAt(3) . "\n"; ## Value: #ffff00
+
+=head3 Adding Items Through the Array
+
+There are several approaches that can be used to add new elements. The array can be reinitialized:
+
+   print "Reinitializing Array:\n";
+   @choices = (qw/one two three/);
+   print "Items: " . $jcb->getItemCount . "\n";     ## Items: 3
+   print "Item1: " . $jcb->getItemNameAt(0) . "\n"; ## Item1: one
+   print "Item2: " . $jcb->getItemNameAt(1) . "\n"; ## Item2: two
+   print "Item3: " . $jcb->getItemNameAt(2) . "\n"; ## Item3: three
+
+One or more Items can be added to the end of the list:
+
+   print "\nAppending items using push:\n";
+   push @choices, "four";
+   push @choices, qw(five six);
+ 
+   print "Items: " . $jcb->getItemCount . "\n";     ## Items: 6
+   print "Item4: " . $jcb->getItemNameAt(3) . "\n"; ## Item4: four
+   print "Item5: " . $jcb->getItemNameAt(4) . "\n"; ## Item5: five
+   print "Item6: " . $jcb->getItemNameAt(5) . "\n"; ## Item6: six
+
+The same thing can be accomplished using splice:
+
+   print "\nAppending items using splice:\n";
+   splice @choices, @choices, 0, $seven;
+   splice @choices, @choices, 0, qw(eight nine);
+
+   print "Items: " . $jcb->getItemCount . "\n";     ## Items: 9
+   print "Item4: " . $jcb->getItemNameAt(6) . "\n"; ## Item4: seven
+   print "Item5: " . $jcb->getItemNameAt(7) . "\n"; ## Item5: eight
+   print "Item6: " . $jcb->getItemNameAt(8) . "\n"; ## Item6: nine
+
+Items can be inserted to the beginning using unshift:
+
+   print "\nAdding items using unshift\n";
+   unshift @choices, qw(A B);
+   print "Items: " . $jcb->getItemCount . "\n";     ## Items: 11
+   print "Item1: " . $jcb->getItemNameAt(0) . "\n"; ## Item1: A
+   print "Item2: " . $jcb->getItemNameAt(1) . "\n"; ## Item2: B
+
+Again, splice can do the same thing:
+
+   print "\nEmulating unshift with splice\n";
+   splice @choices, 0, 0, qw(C D);
+   print "Items: " . $jcb->getItemCount . "\n";     ## Items: 13
+   print "Item1: " . $jcb->getItemNameAt(0) . "\n"; ## Item1: C
+   print "Item2: " . $jcb->getItemNameAt(1) . "\n"; ## Item2: D
+
+Splice can also be used to add entries to the middle:
+
+   print "\nInserting elements into the List:\n";
+   splice @choices, 6, 0, "E";
+   print "Items: " . $jcb->getItemCount . "\n";     ## Items: 14
+   print "Item1: " . $jcb->getItemNameAt(6) . "\n"; ## Item1: E
+
+=head3 Remove Items Through the Array
+
+Removing items is as easy as adding them with the various array methods.
+We can delete the first item:
+
+   print "\nDeleting using shift:\n";
+   print "Item: " . shift @choices, "\n";       ## Item: C
+   print "Items: " . $jcb->getItemCount . "\n"; ## Items: 13
+
+   print "\nDeleting from beginning using splice\n";
+   print "Item: " . splice(@choices, 0, 1) . "\n"; ## Item: D
+   print "Items: " . $jcb->getItemCount . "\n";    ## Items: 12 
+
+The Last:
+
+   print "\nDeleting using pop:\n";        
+   print "Item: " . pop @choices, "\n";          ## Item: nine
+   print "Items: " . $jcb->getItemCount . "\n";  ## Items: 11
+
+   print "\nDeleting from the end with splice:\n";
+   print "Item: " . splice(@choices, -1) . "\n"; ## Item: eight
+   print "Items: " . $jcb->getItemCount . "\n";  ## Items: 10
+
+An element within the array:
+
+   print "\nRemove using delete:\n";
+   print "Item: " . delete $choices[2];           ## Item: one
+   print "\nItems: " . $jcb->getItemCount . "\n"; ## Items: 9
+
+Note that JComboBox overrides the basic behavior of delete where it applies to arrays. In JComboBox, when delete is used, it will delete the specified index no matter if it is at the end, the beginning, or middle, causing the other array elements to be adjusted as necessary. As with most other operations, the same effect can be achieved using splice.
+
+   print "\nRemove using splice:\n";
+   print "Item: " . splice @choices, 2, 1;        ## Item: two
+   print "\nItems: " . $jcb->getItemCount . "\n"; ## Items: 8
+
+Or all the items:
+
+   print "\nRemove all items:\n";
+   @choices = ();
+   print "Items: " . $jcb->getItemCount . "\n"; ## Items: 0
+
 =head1 Customizing Interface Behavior
 
-If you compare Combo Box implementation across different platforms -- even within different applications, you may notice that the various implementations have differences in their behavior. Some provide auto-completion, some use validation, and some behaviors are even more subtle. JComboBox provides several options that will provide the majority of these bahaviors.
+If you compare Combo Box implementations across different platforms -- even within different applications, you may notice that the various implementations have differences in their behavior. Some provide auto-completion, some use validation, and some behaviors are even more subtle. JComboBox provides several options that will provide the majority of these bahaviors.
 
 =head2 The Autofind Option
 
@@ -284,7 +416,56 @@ These options can be combined in various ways:
 
 The best way to famililarize yourself with these options is to experiement with the various combinations, and see what works best for your application. It's important to emphasize that these options have nothing to do with validation. Validation can be used in addition to these features, or not at all if you wish.
 
-=head2 The UpDownSelect Option
+=head2 The -matchcommand option
+
+In the last section, the -autofind option was described. Autofind triggers a search based on the key pressed in readonly mode, and based on the contents of the Entry in editable mode.  The string from either of these two events is treated as a search string, and each entry within the popup Listbox is a potential match. Autofind utilizes the I<getItemIndex> method to do all of its searches. 
+
+The -autofind option assumes that each search is going to be anchored to the left side. For example, consider the case where I have a list containing the
+items: two three thirteen, and I have an editable JComboBox. The first letter I type is a B<t>, annd it matches the first item B<two>. I then type an B<h>, which matches the second item next. This is the default behavior. In some cases, this may not fit in with how you would like items to be searched. The -matchcommand allows this behavior to be customized.
+
+The option expects a callback that will be passed the search string, and the field that is being evaluated, and it is up to the callback to determine whether or not the field is a match for the search string or not. If it, the callback should return a 1, otherwise it should return 0.
+
+The defined callback will be passed at least two parameters, plus one or more optional ones.
+
+=over 4
+
+=item I<search String> 
+
+This will be the first parameter passed to the I<getItemIndex> method. When called from Autofind in readonly mode, this will be a single letter. In editable mode, this will be the contents of the Entry.
+
+=item I<item>
+
+This will be an item from the JComboBox. The I<getItemIndex> method allows a I<-type> option, which may be set as name or value. In the case of name (the default), then the string that is displayed within the Listbox will be the item. In the case of -type being value, then the non-visible String associated with the name will be used as the item instead.
+
+=item I<Optional parameters>
+
+The remainder of the parameters should be assigned to a hash map. Unless you pass your own custom parameters to I<getItemIndex>, the only parameter you are likely to see is I<-mode>. This is used by the default implementation (refer to the documentation for I<getItemIndex> ) and you can choose to ignore or implement it if you wish. 
+
+=back
+
+=head3 An Example
+
+If you wanted to anchor the search to the end of a string, it could be done like this:
+
+   use Tk;
+   use Tk::JComboBox;
+
+   my $mw = MainWindow->new;
+   my $jcb = $mw->JComboBox(
+      -choices => [qw/one two three four five/],
+      -mode => 'editable',
+      -matchcommand => sub {
+         my ($searchStr, $item) = @_;
+         $item =~ /\Q$searchStr\E$/;
+      }
+   )->pack;
+
+   MainLoop;
+
+If you run, this, type 'e' in the entry, and the first item should be selected. Type 'e' again, and now the third entry should be selected.
+
+
+=head2 The -updownselect Option
 
 Determines whether or not the Up/Down arrows will change the selection within the JComboBox. In some Combo Box implementations, hitting the up/down arrows on the keyboard will cause the selection within the ComboBox to change. When this option is enabled, it will bahave the same way regardless of whether the Popup is visible or not. If disabled, the only time the up/down keys will have a noticable impact will be when the Popup is displayed. By default, this option is enabled.
 
@@ -300,25 +481,9 @@ JComboBox supports validation in I<editable> mode, by allowing the B<-validate> 
 
 Currently, JComboBox extends the B<-validate> option slightly by offering two additional values: B<match> and B<cs-match>. Specifying one of these two values will essentially do the same thing that JComboBox does in I<readonly> mode: limit the user to entries that are List items only. These options are translated to validate => "key" and an internal -validatecommand that enforces the rule. I'm unsure how useful these additional options are, but will leave them in for the time being.
 
-=head1 SEE ALSO
-
-=head2 About JComboBox
-
-* L<JComboBox Reference|Tk::JComboBox>, L<Changes|Tk::JComboBox::Changes> L<Example Code|Tk::JComboBox::Examples>
-
-* L<CWidget|Tk::CWidget> - I<JComboBox extends this>
-
-* L<Boolean Utils|Tk::CWidget::BooleanUtils> - I<JComboBox uses this for booleans>
-
-=head2 Alternative Widgets
-
-Standard Distro: L<BrowseEntry|Tk::BrowseEntry>, L<Optionmenu|Tk::Optionmenu>
-
-CPAN: JBrowseEntry, ComboEntry (part of Tk-DKW), MenuEntry (part of Tk-GBARR)
-
 =head1 VERSION
 
-This document covers the 1.06 release of JComboBox.
+This document covers the 1.07 release of JComboBox.
 
 =head1 AUTHOR
 

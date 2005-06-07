@@ -12,11 +12,11 @@
 ## of the code.
 ##
 ## JComboBox.pm owed its original structure to Graham Barr's MenuEntry
-## (Thanks, Graham - it was a fine launchpad) and a hodgepodge of 
-## methods and options that appeared useful in BrowseEntry, Optionmenu, 
-## and the ComboEntry widget (part of Tk-DKW). Features that others 
-## have asked for have also been added over time. So this widget is 
-## basically a giant combo box stew with a few extra spices that I've 
+## (Thanks, Graham - it was a fine launchpad) and a hodgepodge of
+## methods and options that appeared useful in BrowseEntry, Optionmenu,
+## and the ComboEntry widget (part of Tk-DKW). Features that others
+## have asked for have also been added over time. So this widget is
+## basically a giant combo box stew with a few extra spices that I've
 ## come up with myself.
 #######################################################################
 package Tk::JComboBox;
@@ -29,7 +29,7 @@ use Tk::CWidget;
 use Tk::CWidget::Util::Boolean qw(:all);
 
 use vars qw($VERSION);
-$VERSION = "1.06";
+our $VERSION = "1.08";
 
 BEGIN
 {
@@ -39,7 +39,7 @@ BEGIN
    ## that are being used. Using method calls instead of hash keys
    ## helps ensure consistant usage throughout.
 
-   sub CreateGetSet 
+   sub CreateGetSet
    {
       my ($method, $key) = @_;
       my $sub = sub {
@@ -50,7 +50,6 @@ BEGIN
       no strict 'refs';
       *{$method} = $sub;
    }
-
    CreateGetSet(IsButtonDown  => '__JCB__BTN_DOWN');
    CreateGetSet(LastAFIndex   => '__JCB__LAST_INDEX');
    CreateGetSet(LastAFSearch  => '__JCB__LAST_SEARCH');
@@ -61,20 +60,22 @@ BEGIN
    CreateGetSet(LongestEntry  => '__JCB__ENTRY_LEN');
    CreateGetSet(Selected      => '__JCB__SELECTION');
    CreateGetSet(TempRelief    => '__JCB__RELIEF');
+   CreateGetSet(WatchList     => '__JCB__WATCH');
 }
 
 use base qw(Tk::CWidget);
 Tk::Widget->Construct('JComboBox');
 
-## This struct below meant to represent the contents displayed in the
-## pulldown list. Name is the text which is displayed, value is for 
-## text which could be offered as an alternative to the displayed 
-## text. It is slightly overkill having a structure to hold these 
-## values, but it is intended to hold additional values in the 
+## this struct below meant to represent the contents displayed in the
+## pulldown list. Name is the text which is displayed, value is for
+## text which could be offered as an alternative to the displayed
+## text. It is slightly overkill having a structure to hold these
+## values, but it is intended to hold additional values in the
 ## future (bitmaps, images, formats, etc).
 
 use Class::Struct;
-struct '_JCBListItem' => [
+struct '_JCBListItem' =>
+[
    name  => '$',
    value => '$',
 ];
@@ -86,10 +87,10 @@ struct '_JCBListItem' => [
 ## tracking all of the keys that I'm using.
 
 use constant {
-  MODE_UNEDITABLE    => "readonly",
-  MODE_EDITABLE      => "editable",
-  VAL_MODE_CSMATCH   => "cs-match",
-  VAL_MODE_MATCH     => "match",
+   MODE_UNEDITABLE    => "readonly",
+   MODE_EDITABLE      => "editable",
+   VAL_MODE_CSMATCH   => "cs-match",
+   VAL_MODE_MATCH     => "match",
 };
 
 my $BITMAP;
@@ -97,40 +98,39 @@ my $SWAP_BG = "__JCB__SWAP_BG";
 my $SWAP_FG = "__JCB__SWAP_FG";
 
 sub ClassInit {
-  my($class,$mw) = @_;
+   my($class,$mw) = @_;
 
-  unless(defined($BITMAP)) {
-    $BITMAP = __PACKAGE__ . "::downarrow";
+   unless(defined($BITMAP)) {
+      $BITMAP = __PACKAGE__ . "::downarrow";
 
-    ## A smaller bitmap suits Win32 better I think
-    if ($Tk::platform =~ /Win32/) {
-      my $bits = pack("b10"x4,
-        ".11111111.",
-	"..111111..",
-        "...1111...",
-        "....11...."
-      );
-      $mw->DefineBitmap($BITMAP => 10,4, $bits);
+      ## A smaller bitmap suits Win32 better I think
+      if ($Tk::platform =~ /Win32/) {
+         my $bits = pack("b10"x4,
+            ".11111111.",
+	    "..111111..",
+            "...1111...",
+            "....11...."
+         );
+         $mw->DefineBitmap($BITMAP => 10,4, $bits);
 
-    ## Just as this size looks better on other platforms
-    } else {
-      my $bits = pack("b12"x5,
-        ".1111111111.",
-	"..11111111..",
-	"...111111...",
-	"....1111....",
-	".....11....."
-      );
-      $mw->DefineBitmap($BITMAP => 12,5, $bits);
-    }
-    $mw->bind($class, '<ButtonRelease-1>', 'NonSelect');
-    $mw->bind($class, '<FocusIn>', 'RedirectFocus');
-  }
+      ## Just as this size looks better on other platforms
+      } else {
+         my $bits = pack("b12"x5,
+            ".1111111111.",
+	    "..11111111..",
+	    "...111111...",
+	    "....1111....",
+	    ".....11....."
+         );
+         $mw->DefineBitmap($BITMAP => 12,5, $bits);
+      }
+      $mw->bind($class, '<ButtonRelease-1>', 'NonSelect');
+      $mw->bind($class, '<FocusIn>', 'RedirectFocus');
+   }
 }
 
 sub Populate {
    my ($cw ,$args) = @_;
-
    $cw->SUPER::Populate($args);
 
    ## Initiallize Member variables
@@ -147,7 +147,7 @@ sub Populate {
      -background => 'white',
      -bd => 2,
      -highlightthickness => 0
-   )->pack( -side => 'right', -fill => 'both', -expand => 1);
+   )->pack(qw/ -side right -fill both -expand 1/);
 
    ## Mode is set once at construction time, things get overly 
    ## complicated if mode can be switched after construction time, 
@@ -191,7 +191,7 @@ sub Populate {
       -foreground          => [[$entry, $listbox], qw/foreground Foreground/],
       -gap                 => [qw/METHOD gap Gap 0/],
       -highlightbackground => [qw/METHOD/, undef, undef, 
-                                 $frame->cget('-highlightbackground')], 
+                                 $frame->cget('-highlightbackground')],
       -highlightcolor      => [qw/METHOD/, undef, undef, 
                                  $frame->cget('-highlightcolor')],
       -highlightthickness  => [$frame, undef, undef, 0],
@@ -205,22 +205,23 @@ sub Populate {
       -textvariable        => [$entry, qw/textVariable Variable/],
 
       ## Callbacks
-      -buttoncommand    => [qw/CALLBACK/, undef, undef, \&see],
-      -keycommand       => [qw/CALLBACK/],
-      -popupcreate      => [qw/CALLBACK/, undef, undef, \&PopupCreate],
-      -popupmodify      => [qw/CALLBACK/],
-      -selectcommand    => [qw/CALLBACK/],
-      -validatecommand  => [qw/CALLBACK/],
+      -buttoncommand       => [qw/CALLBACK/, undef, undef, \&see],
+      -keycommand          => [qw/CALLBACK/],
+      -matchcommand        => [qw/CALLBACK/],
+      -popupcreate         => [qw/CALLBACK/, undef, undef, \&PopupCreate],
+      -popupmodify         => [qw/CALLBACK/],
+      -selectcommand       => [qw/CALLBACK/],
+      -validatecommand     => [qw/CALLBACK/],
 
       ## Functionality
-      -autofind          => [qw/PASSIVE/],
-      -choices           => [qw/METHOD/],
-      -listhighlight     => [qw/PASSIVE lightHighlight ListHighlight/, TRUE],
-      -listwidth         => [qw/PASSIVE listWidth ListWidth -1/],
-      -maxrows           => [qw/METHOD maxRows MaxRows 10/],
-      -mode              => [qw/METHOD mode Mode/],
-      -updownselect      => [qw/PASSIVE updownSelect UpDownSelect/, TRUE],
-      -validate          => [qw/METHOD validate Validate none/],
+      -autofind            => [qw/PASSIVE/],
+      -choices             => [qw/METHOD/],
+      -listhighlight       => [qw/PASSIVE lightHighlight ListHighlight/, TRUE],
+      -listwidth           => [qw/PASSIVE listWidth ListWidth -1/],
+      -maxrows             => [qw/METHOD maxRows MaxRows 10/],
+      -mode                => [qw/METHOD mode Mode/],
+      -updownselect        => [qw/PASSIVE updownSelect UpDownSelect/, TRUE],
+      -validate            => [qw/METHOD validate Validate none/],
    );
 
    ## Override readonly option settings
@@ -247,28 +248,21 @@ sub Populate {
 ############################################################
 sub choices
 {
-   my ($cw, $listAR) = @_;
-   return $cw->DumpItems if (!$listAR || ref($listAR) ne "ARRAY");
+   my ($cw, $newAR) = @_;
+   return $cw->WatchList unless defined $newAR;
 
-   ## Overwrite existing list contents
-   if ($cw->getItemCount > 0) {
-      $cw->removeAllItems;
-   }
-   foreach my $el (@{$listAR}) {
-      if (ref($el) eq 'HASH') {
-         my $name = delete $el->{'-name'} ||
-            croak "Invalid Menu Item. -name must be given when " . 
-              "using a Hash reference";
-         my $index = $cw->addItem($name, %$el);
-      } 
-      else {
-         $cw->addItem($el);
-      }
-   }
-   ## There's no need to store the data more than once.
-   $cw->{Configure}{'-choices'} = [];
+   my $oldAR = $cw->WatchList;
+   my $tie = Tk::JComboBox::Tie->tie($cw, $newAR, $oldAR);
+   if (defined($tie)) { $cw->WatchList($newAR); }
+   else               { $cw->WatchList("");  }
 }
 
+sub destroy
+{
+   my $cw = shift;
+   $cw->configure(-choices => "") if defined($cw->cget('-choices'));
+   $cw->SUPER::destroy;
+}
 
 sub disabled
 {
@@ -299,8 +293,7 @@ sub disabledforeground
    return $cw->disabled("foreground", $color);
 }
 
- 
-sub entrybackground 
+sub entrybackground
 {
    my ($cw, $val) = @_;
    return $cw->{Configure}{'-entrybackground'} unless defined $val;
@@ -338,7 +331,7 @@ sub highlightcolor
    return $cw->{Configure}{'-highlightcolor'} unless defined $color;
    $cw->Subwidget('Frame')->configure(-highlightcolor => $color);
 }
- 
+
 sub maxrows
 {
    my ($cw, $rows) = @_;
@@ -361,7 +354,7 @@ sub mode
 
    my $frame = $cw->Subwidget('Frame');
    my $entry;
-   if ($mode eq MODE_EDITABLE) { 
+   if ($mode eq MODE_EDITABLE) {
       $entry = $frame->Entry(
          -highlightthickness => 0,
          -borderwidth => 2,
@@ -425,7 +418,7 @@ sub state
 ## either of these two options are set, then a default validatecommand will
 ## be used.
 #############################################################################
-sub validate 
+sub validate
 {
    my ($cw, $mode) = @_;
 
@@ -484,26 +477,19 @@ sub clearSelection
 sub focus { shift->Subwidget('Entry')->focus; }
 sub tabFocus { shift->Subwidget('Entry')->focus; }
 
-sub getItemCount { return scalar( @{shift->List} ); }
+sub getItemCount
+{
+   return scalar( @{shift->List} ); 
+}
 
 sub getItemIndex
 {
-   my ($cw, $item, %args) = @_;
-
-   ## Extract mode (defaults to exact if not set
-   my $mode = lc($args{'-mode'}) || "exact";
-   if ($mode !~ /^((use|ignore)case|exact)$/) {
-      carp "Invalid value for -mode in getItemIndex " .
-           "(try: usecase, ignorecase, or exact)";
-      return;
-   }
+   my ($cw, $searchStr, %args) = @_;
 
    ## start - which index to start looking. Defaults to 0;
    ## if the start is out of range, then reset it to 0.
-   my $start = $args{'-start'} || 0;
-   delete $args{'-start'};
-   $start = 0 
-     if $start >= $cw->Subwidget('Listbox')->size;
+   my $start = delete $args{'-start'} || 0;
+   $start = 0 if $start >= $cw->Subwidget('Listbox')->size || $start < 0;
 
    ## wrap - only use when start is not 0, it determines 
    ## whether or not the search should continue at the beginning
@@ -520,23 +506,20 @@ sub getItemIndex
    my $index;
    foreach my $i ($start .. ($cw->getItemCount - 1)) {
       my $field;
-      if    ($type eq 'value') { $field = $cw->getItemValueAt($i) }
-      elsif ($type eq 'name')  { $field = $cw->List->[$i]->name }
+      if    ($type eq 'name')  { $field = $cw->List->[$i]->name   }
+      elsif ($type eq 'value') { $field = $cw->getItemValueAt($i) }
 
-      if    ($mode eq 'usecase'    && $field =~ /^\Q$item\E/) {
-         $index = $i; last;
-      }
-      elsif ($mode eq 'ignorecase' && $field =~ /^\Q$item\E/i) {
-         $index = $i; last;
-      }
-      elsif ($mode eq 'exact'      && $field eq $item) {
+      if ($cw->MatchCommand($searchStr, $field, %args)) {
          $index = $i; last;
       }
    }
-   return $cw->getItemIndex($item, %args)
+
+   $index = $cw->getItemIndex($searchStr, %args)
       if (!defined($index) && IsTrue($wrap));
+
    return $index;
 }
+
 
 sub getItemNameAt
 {
@@ -588,16 +571,13 @@ sub index
    my ($cw, $index) = @_;
    return undef unless defined($index);
 
-   my $listbox = $cw->Subwidget('Listbox');
+   return 0                       if (lc($index) eq 'first');
    return $cw->getSelectedIndex   if (lc($index) eq 'selected');
    return $cw->getItemCount - 1   if (lc($index) eq 'last');
    return $cw->getItemCount       if (lc($index) eq 'end');
-   return $listbox->index($index) if ($index =~ /\D/);
 
-   if ($index < 0 || $index >= $cw->getItemCount) {
-      carp("Index: $index is out of array bounds");
-      return undef;
-   }
+   my $listbox = $cw->Subwidget('Listbox');
+   return $listbox->index($index) if ($index =~ /\D/);
    return $index;
 }
 
@@ -618,9 +598,7 @@ sub insertItemAt
 
    ## Set the value if it's given
    my $value = $args{'-value'};
-   if (defined($value)) {
-      $item->value($value);
-   }
+   $item->value($value) if defined($value);
 
    ## Add Name to Listbox
    $lb->insert($index, $name);
@@ -758,6 +736,30 @@ sub showPopup
 ## ===================================================================== ##
 ## Private Methods - avoid calling these directly - they may change      ##
 ## ===================================================================== ##
+
+sub AddList
+{
+   my ($cw, $listAR, $where) = @_;
+
+   $where = "end" unless defined $where;
+   croak "2nd Parameter may only be 'start' or 'end'\n"
+      unless $where =~ /end|start|\d+/;
+   $where = 0 if $where eq "start";
+
+   foreach my $el (@{$listAR}) {
+      if (ref($el) eq 'HASH') {
+         my $name = $el->{'-name'} ||
+            croak "Invalid Menu Item. -name must be given when " . 
+              "using a Hash reference";
+
+         my $index = $cw->insertItemAt($where, $name, %$el);
+      }
+      else {
+         $cw->insertItemAt($where, $el);
+      }
+      $where++ if $where ne "end";
+   }
+}
 
 sub AutoFind
 {
@@ -992,7 +994,7 @@ sub EnableControls
    $button->configure(-foreground => $fg);
 
    if ($cw->mode eq MODE_EDITABLE) {
-      $cw->configure(-mode => 'normal');
+      $entry->configure(-state => 'normal');
       return if $Tk::VERSION >= 804;
 
       my $bg = $entry->{SWAP_BG};
@@ -1050,31 +1052,18 @@ sub DisplayedName
    }
 }
 
-sub DumpItems
-{
-   my $cw = shift;
-   my @list;
-   foreach my $i (0 .. $cw->getItemCount-1) {
-      my $value = {};
-      $value->{'-name'} = $cw->getItemNameAt($i);
-      $value->{'-value'} = $cw->getItemValueAt($i);
-      $value->{'-selected'} = 1 if $cw->getSelectedIndex == $i;
-      push @list, $value;
-   }
-   return \@list;
-}
-
 sub GetProperty {
    my ($name, $hashRef, $default, $delete) = @_;
 
    croak "Unable to extract property from undefined Hash Reference\n"
-     if (!defined($hashRef));
+      if (!defined($hashRef));
 
    my $val = $hashRef->{$name};
    $val = $default if (!defined($val) && defined($default));
    delete $hashRef->{$name} if IsTrue($delete);
    return $val;
 }
+
 
 #############################################################################
 ## Arranges layout of the Advertised Box and Button widgets. These subwidgets
@@ -1111,6 +1100,29 @@ sub LayoutControls {
 
    $frame->gridRowconfigure(0, -weight => 1);
    $frame->gridColumnconfigure(0, -weight => 1);
+}
+
+sub MatchCommand
+{
+   my ($cw, $searchStr, $field, %args) = @_;
+
+   ## Check for and use matchcommand if it exists
+   ## Otherwise use default routines
+   my $retVal = $cw->Callback(-matchcommand => $searchStr, $field, %args)
+      if (ref($cw->cget('-matchcommand')) eq 'Tk::Callback');
+   return $retVal if defined $retVal;
+
+   ## Extract mode (defaults to exact if not set
+   my $mode = lc($args{'-mode'}) || "exact";
+   if ($mode !~ /^((use|ignore)case|exact)$/) {
+      $mode = "exact";
+      carp "Invalid value $mode for -mode in getItemIndex - " .
+	 "value of 'exact' assumed";
+   }
+   return 1 if $mode eq 'exact'      && $field eq $searchStr;
+   return 1 if $mode eq 'usecase'    && $field =~ /^\Q$searchStr\E/;
+   return 1 if $mode eq 'ignorecase' && $field =~ /^\Q$searchStr\E/i;
+   return 0;
 }
 
 ## Takes a list of one or more subwidgets and returns 1
@@ -1274,48 +1286,43 @@ sub UpdateListboxHeight
    $listbox->configure(-height => $rows);
 }
 
-
 ##############################################################################
 ## Updates the width of the widget dynamically based on the longest list 
 ## entry. This is similar to specifying 0 or less for the Listbox widget. If 
 ## -entrywidth is greater than 0
 #############################################################################
 sub UpdateWidth {
-  my ($cw, $action, $name) = @_;
-  my $entry = $cw->Subwidget('Entry');
+   my ($cw, $action, $name) = @_;
+   my $entry = $cw->Subwidget('Entry');
 
-  ## updates the width automatically if width has been set to -1, which
-  ## is the default, and anything greater than the default will force the 
-  ## width to be static, otherwise it will be as wide as the longest element
-  ##  in the List. *Feature request: Bryan Williams (bitbucketz2002@yahoo.com)
-  ## - 2003-06-18
-  my $w = $cw->cget('-entrywidth');
-  $w = -1 unless defined $w;  ## Assume -1
-  if ($w >= 0) {
-     my $gap = $cw->gap;
-     $w = $w + $gap if $w > 0; 
-     $entry->configure(-width => $w);
-     return;
-  }
+   ## updates the width automatically if width has been set to -1, which
+   ## is the default, and anything greater than the default will force the 
+   ## width to be static, otherwise it will be as wide as the longest element
+   ##  in the List. *Feature request: Bryan Williams (bitbucketz2002@yahoo.com)
+   ## - 2003-06-18
+   my $w = $cw->cget('-entrywidth');
+   $w = -1 unless defined $w;  ## Assume -1
+   if ($w >= 0) {
+      my $gap = $cw->gap;
+      $w = $w + $gap if $w > 0; 
+      $entry->configure(-width => $w);
+      return;
+   }
 
-  if ($action eq "add") {
-    my $len = length($name);
-    return if ($len <= $cw->LongestEntry);
-    $cw->LongestEntry($len);
-  } 
-  elsif ($action eq "delete") {
-    my $currLen = 0;
-    foreach my $item (@{$cw->List}) {
-      if ($currLen < length($item->name)) {
-	$currLen = length($item->name);
+   if ($action eq "add") {
+      my $len = length($name);
+      return if ($len <= $cw->LongestEntry);
+      $cw->LongestEntry($len);
+   }
+   elsif ($action eq "delete") {
+      my $currLen = 0;
+      foreach my $item (@{$cw->List}) {
+	 $currLen = length($item->name) if $currLen < length($item->name);
       }
-    }
-    if ($cw->LongestEntry > $currLen) {
-      $cw->LongestEntry($currLen);
-    }
-  }
-  $cw->LongestEntry($cw->gap + $cw->LongestEntry);
-  $entry->configure(-width => $cw->LongestEntry);
+      $cw->LongestEntry($currLen) if $cw->LongestEntry > $currLen;
+   }
+   $cw->LongestEntry($cw->gap + $cw->LongestEntry);
+   $entry->configure(-width => $cw->LongestEntry);
 }
 
 #############################################################################
@@ -1325,7 +1332,6 @@ sub UpdateWidth {
 sub ValidateCommand 
 {
    my ($cw, $str, $chars, $currval, $i, $action) = @_;
-
    my $mode = $cw->cget('-validate');
 
    if ($mode !~ /match/) {
@@ -1344,7 +1350,6 @@ sub ValidateCommand
    return TRUE if (defined($index));
    return FALSE;
 }
-
 
 ## ========================================================= ##
 ## JComboBox Event Handler Routines
@@ -1394,7 +1399,7 @@ sub ButtonLeave
    $cw->ButtonUp;
 }
 
-sub ButtonMotion 
+sub ButtonMotion
 {
    my ($cw, $trigger, $widgetAR) = @_;
    return unless $cw->state eq 'normal';
@@ -1456,9 +1461,9 @@ sub KeyPress
 
 sub ListboxEnter 
 {
-  my $cw = shift;
-  return if IsFalse($cw->cget('-listhighlight'));
-  $cw->Subwidget('Listbox')->CancelRepeat;
+   my $cw = shift;
+   return if IsFalse($cw->cget('-listhighlight'));
+   $cw->Subwidget('Listbox')->CancelRepeat;
 }
 
 sub ListboxLeave 
@@ -1470,25 +1475,21 @@ sub ListboxLeave
 
 sub ListboxMotion 
 {
-  my ($cw, $xy) = @_;
-  return if IsFalse($cw->cget('-listhighlight'));
-  my $listbox = $cw->Subwidget('Listbox');
-  my $index = $listbox->index($xy);
-  $listbox->Motion($index);
+   my ($cw, $xy) = @_;
+   return if IsFalse($cw->cget('-listhighlight'));
+   my $listbox = $cw->Subwidget('Listbox');
+   my $index = $listbox->index($xy);
+   $listbox->Motion($index);
 }
 
 ## TO DO -- I don't think this method is doing the right thing
 ## it is called NonSelect yet it IS selecting.
 sub NonSelect {
-  my $cw = shift;
-
-  return unless $cw->popupIsVisible;
-  $cw->hidePopup;
-  my $index = $cw->getSelectedIndex;
-  if (defined($index)) {
-    $cw->setSelectedIndex($index);
-  }
-
+   my $cw = shift;
+   return unless $cw->popupIsVisible;
+   $cw->hidePopup;
+   my $index = $cw->getSelectedIndex;
+   $cw->setSelectedIndex($index) if defined($index);
 }
 
 sub RedirectFocus { shift->Subwidget('Entry')->focus; }
@@ -1501,9 +1502,7 @@ sub Return
    $index = -1 unless defined($index);
 
    $cw->hidePopup if $cw->popupIsVisible;
-   $cw->Subwidget('Entry')->selectionClear() 
-     if $cw->mode eq MODE_EDITABLE;
-
+   $cw->Subwidget('Entry')->selectionClear() if $cw->mode eq MODE_EDITABLE;
    $cw->setSelectedIndex($index) if defined($index);
 }
 
@@ -1514,7 +1513,7 @@ sub Tab
    $cw->focusNext;
 }
 
-sub UpDown 
+sub UpDown
 {
    my ($cw, $mod) = @_;
    return unless $cw->state eq 'normal';
@@ -1540,5 +1539,260 @@ sub UpDown
       $listbox->selectionSet($modIndex);
    }
 }
+
+###########################################################################
+## The package below is highly experimental and subject to massive change
+## and/or deprecation in future versions of JComboBox. Use at your own risk.
+###########################################################################
+package Tk::JComboBox::Tie;
+
+use strict;
+use Carp;
+use Tie::Array;
+
+use vars qw($VERSION);
+our $VERSION = "0.01";
+
+use base qw(Tie::Array);
+
+sub addWatcher
+{
+   my ($self, $watcher) = @_;
+   return unless ref($watcher) eq 'Tk::JComboBox';
+   push @{$self->{LISTENERS}}, $watcher
+      if $self->FindWatcher($watcher) < 0;
+}
+
+sub removeWatcher
+{
+   my ($self, $watcher) = @_;
+   my $index = $self->FindWatcher($watcher);
+   splice @{$self->{LISTENERS}}, $index, 1 unless $index < 0;
+}
+
+sub tie
+{
+   my ($pkg, $jcb, $newListAR, $oldListAR) = @_;
+
+   ## 1st Determine if the oldListAR has been tied to. It
+   ## will almost ALWAYS be tied to, except for the first
+   ## time -choices have been configured to a JComboBox.
+   my $listenerAR;
+
+   my $oldTie = tied @$oldListAR 
+      if (defined $oldListAR && ref($oldListAR) eq 'ARRAY');
+
+   if (defined($oldTie)) {
+
+      ## This widget was the master, copy all listeners
+      ## before breaking the tie, so that we can maintain
+      ## existing ties.
+      if ($jcb == $oldTie->Master) {
+         $oldTie->CLEAR;
+         $listenerAR = $oldTie->{LISTENERS};
+         shift @$listenerAR;
+
+         $oldTie = undef;
+         untie @$oldListAR;
+      }
+
+      ## This widget is not the master, the tie is not ours
+      ## to break. Remove this widget as a listener -- it 
+      ## will be a master of a it's own tie. Then clear all
+      ## its items.
+
+      else {
+	 $oldTie->removeWatcher($jcb);
+      }
+   }
+   $jcb->removeAllItems if $jcb->getItemCount > 0;
+
+   ## At this point, there should be no tie, or the JCombobox
+   ## has been removed as a listener from an existing one. This
+   ## is to clear the way to either create a new tie or add it
+   ## as a listener to a different tie.
+   my $newTie;
+
+   if (ref($newListAR) eq 'ARRAY') {
+      $newTie = tied @$newListAR;
+      my @items = @$newListAR;
+
+      ## Check to see if the new ListAR already is tied. If it is, and 
+      ## and it is tied to a JComboBox, then we will register this 
+      ## widget as a listener, and will not recreate the tie.
+      if (defined($newTie) && ref($newTie) eq 'Tk::JComboBox::Tie') {
+	 $newTie->addWatcher($jcb);
+         $jcb->AddList(\@items, "end");
+      }
+
+      ## The new list has not been tied to anything yet, so we're going
+      ## to create a new Tie with the specified JComboBox as the master.
+      ## If this widget was a previous master, then all of its listeners
+      ## will be swapped to the new tie.
+      else {
+	 $newTie = tie @$newListAR, 'Tk::JComboBox::Tie', $jcb;
+         $jcb->AddList(\@items, "end");
+
+	 foreach my $l (@$listenerAR) {
+            $l->configure(-choices => \@$newListAR);
+         }
+      }
+   }
+   return $newTie;
+}
+
+## ========================================================= ##
+## PRIVATE METHODS                                           ##
+## ========================================================= ##
+
+sub CLEAR 
+{
+   my $self = shift;
+   $self->Notify(-method => 'CLEAR_W') if $self->FETCHSIZE > 0;
+}
+sub CLEAR_W { $_[1]->removeAllItems } 
+
+sub DELETE { shift->SPLICE(shift, 1) }
+
+sub DESTROY 
+{
+   my $self = shift;
+   foreach my $listener (@{$self->{LISTENERS}}) {
+      $listener->configure(-choices => "")
+         if ref($listener) eq 'Tk::JComboBox' && Tk::Exists($listener);
+   }
+}
+
+sub FETCH
+{
+   my ($self, $index) = @_;
+   return undef if $index + 1 > $self->FETCHSIZE;
+   return $self->GetItemValues($self->Master, $index);
+}
+
+sub FETCHSIZE { shift->Master->getItemCount }
+
+sub FindWatcher
+{
+   my ($self, $watcher) = @_;
+   if (ref($watcher)) {
+      foreach my $i (0 .. (scalar(@{$self->{LISTENERS}})-1)) {
+         return $i if ($self->{LISTENERS}->[$i] == $watcher);
+      }
+   }
+   return -1;
+}
+
+sub GetItemValues
+{
+   my ($self, $w, $index) = @_;
+   $index = $w->index($index);
+   my $count = $w->getItemCount;
+   return if $index >= $w->getItemCount;
+
+   my $item = $w->List->[$index];
+   my $rv = $item->name;
+
+   if ($item->value) {
+      $rv = { -name => $item->name };
+      $rv->{'-value'} = $item->value if defined($item->value);
+   }
+   return $rv;
+}
+
+sub Master { return shift->{LISTENERS}->[0] } 
+
+sub Notify
+{
+   my ($self, %args) = @_;
+
+   my @dead;
+   my $method  = delete $args{-method};
+   my $except  = delete $args{-except};
+   my $paramAR = delete $args{-params};
+
+   foreach my $listener (@{$self->{LISTENERS}}) 
+   {
+      next if (defined($except) && $listener == $except);
+      $self->$method($listener, @$paramAR);
+   }
+}
+
+sub POP  { shift->SPLICE("last", 1)    }
+sub PUSH { shift->SPLICE("end", 0, @_) }
+
+sub RemoveItemValues
+{
+   my ($self, $w, $index) = @_;
+   $index = $w->index($index);
+   my $rv = $self->GetItemValues($w, $index);
+   $w->removeItemAt($index);
+   return $rv;
+}
+
+sub RemoveList
+{
+   my ($self, $w, $start, $length) = @_;
+   my @rv;
+   return if $start + 1 > $w->getItemCount;
+   $length = $w->getItemCount - $start if !defined($length); 
+   $length = ($w->getItemCount + $length) - $start if $length < 0;
+   if ($length > 0) {
+      foreach (1 .. $length) {
+         push @rv, $self->RemoveItemValues($w, $start++);
+      }
+   }
+   return @rv;
+}
+
+sub SHIFT { shift->SPLICE("first", 1) }
+
+sub SPLICE
+{
+   my $self = shift;
+   my $master = $self->Master;
+   return if !defined($master);
+
+   $self->Notify(
+      -method => 'SPLICE_W',
+      -params => \@_,
+      -except => $master
+   );
+   $self->SPLICE_W($master, @_);
+}
+
+sub SPLICE_W
+{
+   my ($self, $w, $offset, $length, @list) = @_;
+   my $bounds = $w->getItemCount;
+   $offset = 0 unless defined $offset;
+   $offset = $w->index($offset);
+   $offset = $bounds + $offset  if $offset < 0;
+   return if $offset > $bounds;
+
+   my @removed = $self->RemoveList($w, $offset, $length);
+   $w->AddList(\@list, $offset) if @list;
+
+   return undef unless @removed;
+   return wantarray ? @removed : $removed[scalar(@removed)-1];
+}
+
+sub STORESIZE {}
+sub STORE     { shift->SPLICE(shift, 1, shift) }
+
+sub TIEARRAY
+{
+   my ($class, $jcb) = @_;
+
+   croak "Widget parameter was not a Tk::JComboBox!"
+      unless defined($jcb) && ref($jcb) eq 'Tk::JComboBox';
+
+   my $state = {
+      LISTENERS => [$jcb]
+   }; 
+   return bless $state, $class;
+}
+
+sub UNSHIFT { shift->SPLICE(0, 0, @_) }
 1;
-__END__
+
