@@ -56,28 +56,28 @@ $fontName = "Arial" if $Tk::platform =~ /Win32/;
 #####################
 ## -arrowbitmap (2)
 #####################
-carp "\n\nTest arrowbitmap:\n";
+diag "\n\nTest arrowbitmap:\n";
 TestArrowbitmap('editable');
 TestArrowbitmap('readonly');
 
 #####################
 ## -arrowimage (3)
 #####################
-carp "\nTest arrowimage\n";
+diag "\nTest arrowimage\n";
 TestArrowimage('editable');
 TestArrowimage('readonly');
 
 #####################
 ## -background 
 #####################
-carp "\nTest background\n";
+diag "\nTest background\n";
 checkDescendantsTest("editable", -background => 'gray');
 checkDescendantsTest("readonly", -background => 'gray');
 
 #####################
 ## -borderwidth
 #####################
-carp "\nTest borderwidth:\n";
+diag "\nTest borderwidth:\n";
 checkDefaultValue(-borderwidth => 2);
 checkCreateGetSet("editable", -borderwidth => 5, ['Frame']);
 checkCreateGetSet("readonly", -borderwidth => 5, ['Frame']);
@@ -85,14 +85,14 @@ checkCreateGetSet("readonly", -borderwidth => 5, ['Frame']);
 #####################
 ## -cursor
 #####################
-carp "\nTest cursor:\n";
+diag "\nTest cursor:\n";
 checkDescendantsTest("editable", -cursor => 'left_ptr');
 checkDescendantsTest("readonly", -cursor => 'left_ptr');
 
 #####################
 ## -entrybackground
 #####################
-carp "\nTest entrybackground:\n";
+diag "\nTest entrybackground:\n";
 checkCreateGetSet('editable',
    -entrybackground => 'blue', 
    [[Entry => '-background'],
@@ -107,7 +107,7 @@ checkCreateGetSet('readonly',
 #####################
 ## -entrywidth
 #####################
-carp "\nTest entrywidth:\n";
+diag "\nTest entrywidth:\n";
 checkDefaultValue(-entrywidth => -1);
 checkCreateGetSet('editable', -entrywidth => 5, [[Entry => '-width']]);
 checkCreateGetSet('readonly', -entrywidth => 5, [[Entry => '-width']]);
@@ -120,14 +120,14 @@ checkCreateGetSet('readonly', -entrywidth => 5, [[Entry => '-width']]);
 ## to use for different Operating systems. I need to rethink how I 
 ## test this before I start using it again.
 
-#carp "\nTest font:\n";
+#diag "\nTest font:\n";
 #TestFont('editable');
 #TestFont('readonly');
 
 #####################
 ## -foreground
 #####################
-carp "\nTest foreground:\n";
+diag "\nTest foreground:\n";
 checkCreateGetSet("editable",
    -foreground => 'red', [qw/Entry Listbox/]);
 checkCreateGetSet("readonly",
@@ -136,7 +136,7 @@ checkCreateGetSet("readonly",
 #####################
 ## -gap
 #####################
-carp "\nTest gap:\n";
+diag "\nTest gap:\n";
 checkDefaultValue(-gap => 0);
 checkCreateGetSet("editable", -gap => 2);
 checkCreateGetSet("readonly", -gap => 2);
@@ -144,7 +144,7 @@ checkCreateGetSet("readonly", -gap => 2);
 #####################
 ## -highlightthickness
 #####################
-carp "\nTest highlightthickness:\n";
+diag "\nTest highlightthickness:\n";
 checkDefaultValue(-highlightthickness => 0);
 checkCreateGetSet("editable", -highlightthickness => 2, ['Frame']);
 checkCreateGetSet("readonly", -highlightthickness => 2, ['Frame']);
@@ -153,14 +153,14 @@ checkCreateGetSet("readonly", -highlightthickness => 2, ['Frame']);
 ## -highlightcolor and
 ## -highlightbackground
 #####################
-carp "\nTest highlight:\n";
+diag "\nTest highlight:\n";
 TestHighlight('editable');
 TestHighlight('readonly');
 
 #####################
 ## -listwidth
 #####################
-carp "\nTest listwidth:\n";
+diag "\nTest listwidth:\n";
 checkDefaultValue(-listwidth => -1);
 TestListwidth('editable');
 TestListwidth('readonly');
@@ -168,21 +168,21 @@ TestListwidth('readonly');
 #####################
 ## -pady
 #####################
-carp "\nTest pady:\n";
+diag "\nTest pady:\n";
 TestPadY('editable');
 TestPadY('readonly');
 
 #####################
 ## -relief
 #####################
-carp "\nTest relief:\n";
+diag "\nTest relief:\n";
 TestRelief("editable", "sunken");
 TestRelief("readonly", "groove");
 
 #####################
 ## -selectbackground
 #####################
-carp "\nTest selectbackground:\n";
+diag "\nTest selectbackground:\n";
 checkCreateGetSet('editable', 
    -selectbackground => 'gray', 
    [qw/Entry Listbox/]);
@@ -194,7 +194,7 @@ checkCreateGetSet('readonly',
 #####################
 ## -selectforeground
 #####################
-carp "\nTest selectforeground:\n";
+diag "\nTest selectforeground:\n";
 checkCreateGetSet('editable', 
    -selectforeground => 'gray', 
    [qw/Entry Listbox/]);
@@ -206,7 +206,7 @@ checkCreateGetSet('readonly',
 #####################
 ## -selectborderwidth
 #####################
-carp "\nTest selectborderwidth:\n";
+diag "\nTest selectborderwidth:\n";
 checkCreateGetSet('editable', 
    -selectborderwidth => 4, 
    [qw/Entry Listbox/]);
@@ -218,14 +218,14 @@ checkCreateGetSet('readonly',
 #####################
 ## -takefocus
 #####################   
-carp "\nTest takefocus:\n";
+diag "\nTest takefocus:\n";
 TestTakeFocus('readonly');
 TestTakeFocus('editable');
 
 #####################
 ## -textvariable
 #####################
-carp "\nTest TextVariable:\n";
+diag "\nTest TextVariable:\n";
 TestTextVariable('readonly');
 TestTextVariable('editable');
 
@@ -251,7 +251,7 @@ sub checkCreateGetSet
       checkSubwidgetOption($w, $name, $value, $swAR);
       $w->destroy;
    };
-   carp "\nFail - checkCreateGetSet($mode,$name,$value): $@" if $@;
+   diag "\nFail - checkCreateGetSet($mode,$name,$value): $@" if $@;
 }
 
 sub checkDescendantsForOption
@@ -263,7 +263,7 @@ sub checkDescendantsForOption
 	 $unexpectedOption++ if ($w->cget($name) ne $value);
       }
    };
-   carp "\nFail - checkDescendantsForOption($name,$value): $@" if $@;
+   diag "\nFail - checkDescendantsForOption($name,$value): $@" if $@;
    return $unexpectedOption;
 }
 
@@ -282,7 +282,7 @@ sub checkDescendantsTest
       $jcb->destroy;
       checkCreateGetSet($mode, $name => $value);
    };
-   carp "\nFail - checkDescendantsTest($name,$value): $@" if $@;
+   diag "\nFail - checkDescendantsTest($name,$value): $@" if $@;
 }
 
 sub checkDefaultValue
@@ -295,7 +295,7 @@ sub checkDefaultValue
       is($jcb->cget($option), $value);
       $jcb->destroy;
    };
-   carp "\nFail - checkDefaultValue($option,$value,$mode): $@" if $@;
+   diag "\nFail - checkDefaultValue($option,$value,$mode): $@" if $@;
    
 }
 
@@ -307,7 +307,7 @@ sub checkFont
       is($wFont->configure('-family'), $font->configure('-family'));
       is($wFont->configure('-size'),   $font->configure('-size'));
    };
-   carp "Fail - checkFont: $@" if $@;      
+   diag "Fail - checkFont: $@" if $@;      
 }
 
 sub checkSubwidgetOption 
@@ -377,7 +377,7 @@ sub TestArrowbitmap
       is( $jcb->Subwidget('Button')->cget('-bitmap'), $bitmap);
       $jcb->destroy;
    };
-   carp "\nFail - TestArrowBitmap($mode): $@" if $@;
+   diag "\nFail - TestArrowBitmap($mode): $@" if $@;
 }
 
 sub TestArrowimage
@@ -403,7 +403,7 @@ sub TestArrowimage
       $image->delete;
       $jcb->destroy;
    };
-   carp "\nFail - TestArrowImage($mode): $@" if $@;
+   diag "\nFail - TestArrowImage($mode): $@" if $@;
 }
 
 sub TestFont
@@ -432,7 +432,7 @@ sub TestFont
       checkFont($jcb->Subwidget('Listbox'), $font);
       $main->destroy;
    };
-   carp "\nFail - TestFont($mode): $@" if $@;
+   diag "\nFail - TestFont($mode): $@" if $@;
 }
 
 sub TestHighlight
@@ -456,7 +456,7 @@ sub TestHighlight
       is( $frame->cget('-highlightbackground'), 'red');
       $jcb->destroy;
    };
-   carp "\nFail - TestHighlight($mode): $@" if $@;
+   diag "\nFail - TestHighlight($mode): $@" if $@;
 }
 
 sub TestListwidth
@@ -496,7 +496,7 @@ sub TestListwidth
       $jcb->hidePopup;
       $jcb->destroy;
    };
-   carp "\nFail - TestListWidth($mode): $@" if $@;
+   diag "\nFail - TestListWidth($mode): $@" if $@;
 }
 
 sub TestPadY
@@ -511,7 +511,7 @@ sub TestPadY
       is( $gridInfo{'-ipady'}, 5);
       $jcb->destroy;
    };
-   carp "\nFail - TestPadY($mode): $@" if $@;
+   diag "\nFail - TestPadY($mode): $@" if $@;
 }
 
 sub TestRelief 
@@ -521,7 +521,7 @@ sub TestRelief
       checkDefaultValue(-relief => $relief, $mode);
       checkCreateGetSet($mode, -relief => $relief, ['Frame']);
    };
-   carp "\nFail - TestRelief($mode): $@" if $@;
+   diag "\nFail - TestRelief($mode): $@" if $@;
 }
 
 sub TestTakeFocus
@@ -570,7 +570,7 @@ sub TestTakeFocus
       is($currentFocus->cget('-text'), 'two');
       foreach my $w ($jcb, $b1, $b2) { $w->destroy; }
    };
-   carp "\nFail - TestTakeFocus($mode): $@" if $@;
+   diag "\nFail - TestTakeFocus($mode): $@" if $@;
 }
 
 sub TestTextVariable 
@@ -593,7 +593,7 @@ sub TestTextVariable
       is($textVar, "test2");
       $jcb->destroy;
    };
-   carp "\nFail - TestTextVariable($mode): $@" if $@;
+   diag "\nFail - TestTextVariable($mode): $@" if $@;
 }
 
 

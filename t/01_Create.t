@@ -1,4 +1,9 @@
+#! /usr/bin/perl
+
+use diagnostics;
+use strict;
 use Carp;
+
 use Tk;
 use Tk::JComboBox;
 use Test::More tests => 31;
@@ -86,7 +91,7 @@ ok ($jcb->Subwidget('ED_Button') == $jcb->Subwidget('Button'),
 
 sub checkMode 
 {
-   my (my $mode, $successExpected, $testName) = @_;
+   my ($mode, $successExpected, $testName) = @_;
    my $jcb;
    my $invalidMode = 0;
    eval    { $jcb = $mw->JComboBox(-mode => $mode); };

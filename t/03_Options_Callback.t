@@ -1,4 +1,4 @@
-#! /usr/local/bin/perl
+#! /usr/bin/perl
 
 #################################################################
 ## Name: 03_Options_Callback.t
@@ -15,7 +15,7 @@
 ##  -validatecommand
 ################################################################
 
-use Carp;
+use diagnostics;
 use strict;
 
 use Tk;
@@ -27,7 +27,7 @@ my $mw = MainWindow->new;
 #####################
 ## -buttoncommand
 #####################
-carp "\n\ntesting buttoncommand:\n";
+diag "\n\ntesting buttoncommand:\n";
 TestButtonCommand('readonly', [1, 2, 3]);
 TestButtonCommand('editable', [1, 2, 2]);
 
@@ -35,7 +35,7 @@ TestButtonCommand('editable', [1, 2, 2]);
 ## -keycommand 
       my $unexpectedOption = 0;
 #####################
-carp "\ntesting keycommand: \n";
+diag "\ntesting keycommand: \n";
 TestKeyCommand("readonly");
 TestKeyCommand("editable");
 
@@ -43,7 +43,7 @@ TestKeyCommand("editable");
 ## -popupcreate
 ## -popupmodify
 #####################
-carp "\ntesting popupcreate/modify:\n";
+diag "\ntesting popupcreate/modify:\n";
 TestPopup('create', 'readonly');
 TestPopup('create', 'editable');
 
@@ -56,14 +56,14 @@ TestCreateModifyPopup('editable');
 #####################
 ## -selectcommand
 #####################
-carp "\ntesting selectcommand:\n";
+diag "\ntesting selectcommand:\n";
 TestSelectCommand('editable');
 TestSelectCommand('readonly');
 
 ###################################
 ## Validation Testing
 ###################################
-carp "\ntesting validation:\n";
+diag "\ntesting validation:\n";
 TestValidation();
 
 ## Cleanup
@@ -110,7 +110,7 @@ sub TestButtonCommand
       is($cmdCalled, $resultsAR->[2]);
       $jcb->destroy;
    };
-   carp "\nFail - TestButtonCommand($mode): $@" if $@;
+   fail "\nFail - TestButtonCommand($mode): $@" if $@;
 }
 
 sub TestCreateModifyPopup
@@ -139,7 +139,7 @@ sub TestCreateModifyPopup
       is($cb, 3, 'both -popupcreate/-popupmodify configured - both called');
       $jcb->destroy;
    };
-   carp "\nFail - TestCreateModifyPopup($mode): $@" if $@;
+   fail "\nFail - TestCreateModifyPopup($mode): $@" if $@;
 }
   
 sub TestKeyCommand
@@ -167,7 +167,7 @@ sub TestKeyCommand
       is($key, 'a', 'key correctly passed');
       $jcb->destroy;
    };
-   carp "\nFail - TestKeyCommand($mode): $@" if $@;
+   fail "\nFail - TestKeyCommand($mode): $@" if $@;
 }
 
 sub TestPopup
@@ -210,7 +210,7 @@ sub TestPopup
       is($cb, 2, "-popup$type not called when popup is visible");
       $jcb->destroy;
    };
-   carp "\nFail - TestPopup($mode): $@" if $@;
+   fail "\nFail - TestPopup($mode): $@" if $@;
 }
 
 sub TestSelectCommand 
@@ -258,7 +258,7 @@ sub TestSelectCommand
       ## TODO: This test routine should probably be expanded to include
       ## event handling.
    };
-   carp "\nFail - TestSelectCommand($mode): $@" if $@;
+   fail "\nFail - TestSelectCommand($mode): $@" if $@;
    
 }
 
@@ -317,7 +317,7 @@ sub TestValidation
       is($jcb->getSelectedValue, 'o');
       $jcb->destroy;
    };
-   carp "\nFail - TestValidation: $@" if $@;
+   fail "\nFail - TestValidation: $@" if $@;
 }
 
 

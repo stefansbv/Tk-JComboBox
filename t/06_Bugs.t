@@ -1,7 +1,9 @@
 #! /usr/local/bin/perl 
 ## 05_Bugs -- Test Cases for reported bugs
 
-use Carp;
+use diagnostics;
+use strict;
+
 use Tk;
 use Tk::JComboBox;
 use Test::More tests => 28;
@@ -20,7 +22,7 @@ my $mw = MainWindow->new;
 ## sub only highlights the choice that begins with the 
 ## letter. It does not scroll down/up so that it is viewable. 
 ###########################################################
-carp "\n\nTest Item Visible After AutoFind\n";
+diag "\n\nTest Item Visible After AutoFind\n";
 TestItemVisibleAfterAutoFind("readonly");
 TestItemVisibleAfterAutoFind("editable");
 
@@ -38,9 +40,9 @@ TestItemVisibleAfterAutoFind("editable");
 ## widget as expected. Ken submitted a patch which I reformatted
 ## slightly and included. Thanks!
 ###########################################################
-carp "\nTest that stolen grab (local) was returned\n";
+diag "\nTest that stolen grab (local) was returned\n";
 TestThatStolenGrabWasReturned('local');
-carp "\nTest that stolen grab (global) was returned\n";
+diag "\nTest that stolen grab (global) was returned\n";
 TestThatStolenGrabWasReturned('global');
 
 ############################################################
@@ -66,7 +68,7 @@ sub TestItemVisibleAfterAutoFind
       checkItemVisibility($jcb, "a", 0);
       $jcb->destroy;
    };
-   carp "\nFail - TestItemVisibleAfterAutoFind($mode): $@" if $@;
+   fail "\nFail - TestItemVisibleAfterAutoFind($mode): $@" if $@;
 }
 
 sub TestThatStolenGrabWasReturned

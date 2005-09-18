@@ -600,7 +600,7 @@ MatchEntry is an Entry/Listbox combination maintained by Wolfgang Hommel that is
 
 =head1 VERSION
 
-This document covers the 1.08 release of JComboBox.
+This document covers the 1.09 release of JComboBox.
 
 =head1 AUTHOR
 

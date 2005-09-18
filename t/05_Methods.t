@@ -1,7 +1,9 @@
-#! /usr/local/bin/perl 
+#! /usr/bin/perl 
 ## 05_Methods -- Test JComboBox Methods
 
-use Carp;
+use diagnostics;
+use strict;
+
 use Tk;
 use Tk::JComboBox;
 use Test::More tests => 130;
@@ -12,7 +14,7 @@ my $jcb = $mw->JComboBox;
 ####################################################
 ## Test for existance of documented methods 
 ####################################################
-carp "\n\nTest existance of public methods\n";
+diag "\n\nTest existance of public methods\n";
 can_ok($jcb,
    'addItem',
    'clearSelection',
@@ -37,7 +39,7 @@ can_ok($jcb,
 ############################################################
 ## Adding New Items
 ############################################################  
-carp "\nTesting Add Functionality:\n";
+diag "\nTesting Add Functionality:\n";
 
 $jcb = setupTest();
 is( $jcb->getItemCount, 0);
@@ -67,7 +69,7 @@ checkSelection($jcb, 3, "DC", "DC");
 ############################################################
 ## Removing Items
 ############################################################
-carp "\nTesting Remove Functionality:\n";
+diag "\nTesting Remove Functionality:\n";
 
 is( $jcb->getItemCount, 4);
 $jcb->removeItemAt(0);
@@ -89,7 +91,7 @@ $jcb->destroy;
 ############################################################
 ## Popup-related
 ############################################################
-carp "\nTest Popup-related methods:\n";
+diag "\nTest Popup-related methods:\n";
 
 $jcb = $mw->JComboBox(-choices => [qw/one/])->pack;
 $mw->update;
@@ -107,7 +109,7 @@ $jcb->destroy;
 ############################################################
 ## Selection-related
 ############################################################
-carp "\nTest Selection-related methods:\n";
+diag "\nTest Selection-related methods:\n";
 my $value = "Rob";
 
 $jcb = setupTest("readonly");
@@ -143,7 +145,7 @@ is( $jcb->getSelectedIndex, 2);
 ############################################################
 ## Index-related methods
 ############################################################
-carp "\nTest Index-related methods:\n";
+diag "\nTest Index-related methods:\n";
 $jcb = $mw->JComboBox(
   -choices => [qw/one two three four five six seven eight/]
 );

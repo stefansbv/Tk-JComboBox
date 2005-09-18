@@ -1,4 +1,4 @@
-#! /usr/local/bin/perl
+#! /usr/bin/perl
 
 #################################################################
 ## Name: 04_Options_Misc.t
@@ -16,6 +16,7 @@
 ##  -updownselect
 ################################################################ 
 use Carp;
+use diagnostics;
 use strict;
 
 use Tk;
@@ -27,19 +28,19 @@ my $mw = MainWindow->new;
 #####################
 ## -autofind
 #####################
-carp "\n\ntesting autofind:\n";
+diag "\n\ntesting autofind:\n";
 TestAutoFind('readonly');
 TestAutoFind('editable');
 
 #####################
 ## -choices/options
 #####################
-carp "\ntesting choices:\n";
+diag "\ntesting choices:\n";
 TestChoices("-choices");
 TestChoices("-options");
 
 ####################################
-carp "\nTest Choices - FETCHSIZE\n";
+diag "\nTest Choices - FETCHSIZE\n";
 ####################################
 my @list = (qw/one two three/);
 my @list2 = (qw/four five six/);
@@ -50,13 +51,13 @@ $jcb->removeItemAt(0);
 is(scalar(@list), 2);
 
 ###################################
-carp "\nTest Choices - CLEAR\n";
+diag "\nTest Choices - CLEAR\n";
 ###################################
 @list = ();
 is($jcb->getItemCount, 0);
 
 ###################################
-carp "\nTest Choices - PUSH\n";
+diag "\nTest Choices - PUSH\n";
 ###################################
 push(@list, @list2);
 is($jcb->getItemCount, 3);
@@ -67,14 +68,14 @@ push(@list, @list2);
 is($jcb->getItemCount, 6);
 
 ###################################
-carp "\nTest Choices - POP\n";
+diag "\nTest Choices - POP\n";
 ###################################
 my $item = pop @list;
 is($item, "six");
 is($jcb->getItemCount, 5);
 
 ###################################
-carp "\nTest Choices - SHIFT\n";
+diag "\nTest Choices - SHIFT\n";
 ###################################
 $item = shift @list;
 is($item, "four");
@@ -82,7 +83,7 @@ is($jcb->getItemCount, 4);
 is($jcb->getItemNameAt(0), "five");
 
 ###################################
-carp "\nTest Choices - STORE\n";
+diag "\nTest Choices - STORE\n";
 ###################################
 @list = (qw/one two three/);
 is($jcb->getItemCount, 3);
@@ -95,7 +96,7 @@ is($jcb->getItemNameAt(2), "four");
 $jcb->removeAllItems;
 
 ###################################
-carp "\n\nTest Choices - FETCH\n";
+diag "\n\nTest Choices - FETCH\n";
 ###################################
 $jcb->addItem("five");
 $jcb->addItem("four");
@@ -106,7 +107,7 @@ is($list[1], "four");
 is($list[2], "three");
 
 ###################################
-carp "\nTest Choices - UNSHIFT\n";
+diag "\nTest Choices - UNSHIFT\n";
 ###################################
 unshift @list, (1, 2, 3);
 is($jcb->getItemCount, 6);
@@ -115,7 +116,7 @@ is($list[1], 2);
 is($list[2], 3);
 
 ###################################
-carp "\nTest Choices - DELETE\n";
+diag "\nTest Choices - DELETE\n";
 ###################################
 delete $list[0];
 is($jcb->getItemCount, 5);
@@ -126,28 +127,28 @@ $jcb->destroy;
 #####################
 ## -listhighlight
 #####################
-carp "\ntesting listhighlight:\n";
+diag "\ntesting listhighlight:\n";
 TestListhighlight('editable');
 TestListhighlight('readonly');
 
 #####################
 ## -maxrows
 #####################
-carp "\ntesting maxrows:\n";
+diag "\ntesting maxrows:\n";
 TestMaxRows('editable');
 TestMaxRows('readonly');
 
 #####################
 ## -state
 #####################
-carp "\ntesting state:\n";
+diag "\ntesting state:\n";
 TestState('editable');
 TestState('readonly');
 
 #####################
 ## -updownselect
 #####################
-carp "\ntesting updownselect:\n";
+diag "\ntesting updownselect:\n";
 TestUpDownSelect('readonly');
 TestUpDownSelect('editable');
 
@@ -305,7 +306,7 @@ sub TestAutoFindComplete
       is($entry->index('sel.last'), 5);
       $jcb->destroy;
    };
-   carp "\nFail - AutoFindComplete: " . $@ if $@;
+   fail "\nFail - AutoFindComplete: " . $@ if $@;
 }
 
 sub TestAutoFindDefaults 
@@ -328,7 +329,7 @@ sub TestAutoFindDefaults
       is($jcb->popupIsVisible, 0, 'popup should be withdrawn when no match');
       $jcb->destroy;
    };
-   carp "\nFail - AutoFindDefaults ($mode): $@" if $@;
+   fail "\nFail - AutoFindDefaults ($mode): $@" if $@;
 }
    
 sub TestAutoFindEditableSearch
@@ -360,7 +361,7 @@ sub TestAutoFindEditableSearch
       is($jcb->popupIsVisible, 0);
       $jcb->destroy;
    };
-   carp "\nFail - TestAutoFindEditableSearch: $@" if $@;
+   fail "\nFail - TestAutoFindEditableSearch: $@" if $@;
 }
 
 sub TestAutoFindEditableSelect
@@ -379,7 +380,7 @@ sub TestAutoFindEditableSelect
       checkAutoFindSelection($jcb, 'BackSpace', 1, 'two');
       $jcb->destroy;
    };
-   carp "\nFail - TestAutoFindEditableSelect: $@" if $@;
+   fail "\nFail - TestAutoFindEditableSelect: $@" if $@;
 }
 
 sub TestAutoFindReadonlySearch()
@@ -410,7 +411,7 @@ sub TestAutoFindReadonlySearch()
       checkListboxSelection($jcb, 'T', 4); 
       $jcb->destroy;
    };
-   carp "\nFail - TestAutoFindReadonlySearch: $@" if $@;
+   fail "\nFail - TestAutoFindReadonlySearch: $@" if $@;
 }   
 
 sub TestAutoFindReadonlySelect
@@ -428,7 +429,7 @@ sub TestAutoFindReadonlySelect
       checkAutoFindSelection($jcb, 'o', 0, 'one');
       $jcb->destroy;
    };
-   carp "\nFail - TestAutoFindReadonlySelect: $@" if $@;
+   fail "\nFail - TestAutoFindReadonlySelect: $@" if $@;
 }
 
 sub TestAutoFindShowPopup
@@ -458,7 +459,7 @@ sub TestAutoFindShowPopup
       is($jcb->popupIsVisible, 0);
       $jcb->destroy;
    };
-   carp "\nFail - TestAutoFindShowPopup($mode): $@" if $@;
+   fail "\nFail - TestAutoFindShowPopup($mode): $@" if $@;
 }
 
 ###############################################
@@ -494,7 +495,7 @@ sub TestCgetChoices
       is($list->[1]->{'-name'}, $jcb->getItemNameAt(1));
       is($list->[1]->{'-value'}, $jcb->getItemValueAt(1));
    };
-   carp "\nFail - TestCgetChoices: $@" if $@;
+   fail "\nFail - TestCgetChoices: $@" if $@;
 }
 
 sub TestConfigureChoices{
@@ -530,7 +531,7 @@ sub TestConfigureChoices{
       is($jcb->getSelectedIndex(), 0); 
       $jcb->destroy;
    };
-   carp "\nFail - TestConfigureChoices: $@" if $@;
+   fail "\nFail - TestConfigureChoices: $@" if $@;
 }
   
 ######################################################################
@@ -576,7 +577,7 @@ sub TestListhighlightMotion
       checkMotionOnIndex($lb, 2, 2);
       $jcb->destroy;
    };
-   carp "\nFail - TestListhighlightMotion($mode): $@" if $@;
+   fail "\nFail - TestListhighlightMotion($mode): $@" if $@;
 } 
 
 ######################################################################
@@ -604,7 +605,7 @@ sub TestMaxRows
       is($lb->cget('-height'), 8);
       $jcb->destroy;
    };
-   carp "\nFail - TestMaxRows: $@" if $@;
+   fail "\nFail - TestMaxRows: $@" if $@;
 }
 
 sub TestState
@@ -642,7 +643,7 @@ sub TestState
       is($w->cget('-text'), 'two');
       foreach ($b1, $jcb, $b2) { $_->destroy; }
    };
-   carp "\nFail - TestState($mode): $@" if $@;
+   fail "\nFail - TestState($mode): $@" if $@;
 }
 
 
@@ -675,7 +676,7 @@ sub TestUpDownSelect
       checkUpDownSelection($jcb, '<Up>', 1, 'two');   
       $jcb->destroy;
    };
-   carp "\nFail - TestUpDownSelect($mode): $@" if $@;
+   fail "\nFail - TestUpDownSelect($mode): $@" if $@;
 }
 
 

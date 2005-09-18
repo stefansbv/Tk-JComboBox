@@ -1,5 +1,15 @@
 Revision history for Perl extension Tk::JComboBox.
 
+1.09 Bug Fix
+
+   - Bug reported and fixed in version 1.06 (cpan#12372) reopened in
+     report (cpan#14520) from tjtoocool@phreaker.net - there were 
+     still some lingering issues with DialogBox widgets interfering
+     with this widget, Including two specific cases where hidePopup 
+     tried to reinstate grab to a destroyed widget and another case 
+     where hidePopup would try to assign grab to a
+     widget that was iconified. 
+
 1.08 Bug Fixes + new Features
 
    - Fonts still an issue for 1.07 tests; commented out tests while I 

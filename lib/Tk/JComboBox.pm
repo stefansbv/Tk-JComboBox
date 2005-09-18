@@ -29,7 +29,7 @@ use Tk::CWidget;
 use Tk::CWidget::Util::Boolean qw(:all);
 
 use vars qw($VERSION);
-our $VERSION = "1.08";
+our $VERSION = "1.09";
 
 BEGIN
 {
@@ -250,6 +250,7 @@ sub choices
 {
    my ($cw, $newAR) = @_;
    return $cw->WatchList unless defined $newAR;
+   return if $newAR eq "" && !defined $cw->WatchList;
 
    my $oldAR = $cw->WatchList;
    my $tie = Tk::JComboBox::Tie->tie($cw, $newAR, $oldAR);
@@ -557,14 +558,16 @@ sub hidePopup
    $cw->grabRelease;
 
    ## PATCH (submitted by Ken Prows for CPAN bug#12372)
-   if ($Tk::oldGrab and $Tk::oldGrabStatus)
+   ## PATCH Modified to fix CPAN bug#14520
+   if ($Tk::oldGrab && Exists($Tk::oldGrab) && $Tk::oldGrab->ismapped)
    {
-      $Tk::oldGrab->grab       if $Tk::oldGrabStatus eq 'local';
-      $Tk::oldGrab->grabGlobal if $Tk::oldGrabStatus eq 'global';
+      if ($Tk::oldGrabStatus) {
+	 $Tk::oldGrab->grab       if $Tk::oldGrabStatus eq 'local';
+	 $Tk::oldGrab->grabGlobal if $Tk::oldGrabStatus eq 'global';
+      }
    }
-   ## END PATCH
+   ## END PATCHES
 }
-
 
 sub index
 {
