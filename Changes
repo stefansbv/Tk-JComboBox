@@ -1,5 +1,36 @@
 Revision history for Perl extension Tk::JComboBox.
 
+1.10 Bug Fix: corrected -textvariable problems.
+
+   - Bug reported via c.l.p.tk [Tk::JComboBox Question - 
+     http://groups.google.com/group/comp.lang.perl.tk/msg/2971450102b53533
+     textvariable option not working correctly: when set, a default value
+     *does* appear in the JCombobox Entry, however once the Button is 
+     pressed, it does not appear selected (or scrolled to) within the 
+     Listbox. This occcurs when the Button is pushed once. If pressed again
+     the item does show as selected.
+
+     The problem: Because I wasn't a big fan of the option, I implemented
+     it in an overly simplistic way, by delegating it to the Entry widget.
+     This meant that it if the variable was assigned a value, then it would
+     appear within the Entry widget, but the rest of the JComboBox code
+     would not necessarily be aware of it. There was code that was "set"
+     the value as selected when the Popup Listbox was closed, but not 
+     when it was triggered.
+
+     The solution: I tried two different solutions, the one I decided to 
+     go with was what I probably should have done orginally which was tie
+     the textvariable to JComboBox code, so that stores/fetches were tied
+     to JComboBox methods, and there was some measure of consistancy in the
+     implementation. For example, before if the JComboBox was in readonly
+     mode, you could use -textvariable to set a value that didn't appear
+     within the Listbox, which broke the basic model of the mode. I used
+     Steve Lidie's Tie::Watch class to implement the fix.
+
+   - Docs and Test cases were updated to reflect the modifications, and I 
+     did some more proofreading on JComboBox.pod to remove typos and a few
+     inaccuracies. 
+
 1.09 Bug Fix
 
    - Bug reported and fixed in version 1.06 (cpan#12372) reopened in

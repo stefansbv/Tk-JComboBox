@@ -42,7 +42,7 @@ use strict;
 use Tk;
 use Tk::Font;
 use Tk::JComboBox;
-use Test::More tests => 195;
+use Test::More tests => 205;
 
 my $mw = MainWindow->new();
 
@@ -226,8 +226,20 @@ TestTakeFocus('editable');
 ## -textvariable
 #####################
 diag "\nTest TextVariable:\n";
-TestTextVariable('readonly');
-TestTextVariable('editable');
+TestTextVar("editable");
+TestTextVar("readonly");
+
+
+
+
+
+
+
+
+
+
+#TestTextVariable('readonly');
+#TestTextVariable('editable');
 
 ## CleanUp
 $mw->destroy;
@@ -573,28 +585,48 @@ sub TestTakeFocus
    diag "\nFail - TestTakeFocus($mode): $@" if $@;
 }
 
-sub TestTextVariable 
+sub TestTextVar
 {
    my $mode = shift;
-   my $textVar;
 
-   eval {
-      checkCreateGetSet($mode, -textvariable => \$textVar, ['Entry']);
+   my $test;
+   my $jcb = Setup(
+      -mode => $mode,
+      -choices => [qw/one two three/, {-name => 'four', -value => 4}],
+      -textvariable => \$test
+   );
+   is($test, "");
+   $jcb->setSelectedIndex(0);
+   is($test, 'one');
+   $jcb->setSelectedIndex(1);
+   is($test, 'two');
+   $jcb->setSelectedIndex(2);
+   is($test, 'three');
+   $jcb->setSelectedIndex(3);
+   is($test, 4);
 
-      my $jcb = Setup(-mode => $mode);
-      $jcb->configure(-textvariable => \$textVar);
-
-      $jcb->DisplayedName("test1");
-      $jcb->update;
-      is($textVar, "test1");
-
-      $jcb->addItem("test2", -selected => 1);
-      $jcb->update;
-      is($textVar, "test2");
-      $jcb->destroy;
-   };
-   diag "\nFail - TestTextVariable($mode): $@" if $@;
+   $test = "one";
+   is(0, $jcb->getSelectedIndex());
+   $test = "two";
+   is(1, $jcb->getSelectedIndex());
+   $test = "three";
+   is(2, $jcb->getSelectedIndex());
+   $test = 4;
+   is(3, $jcb->getSelectedIndex());
+   is("four", $jcb->DisplayedName());
+   $jcb->clearSelection;
+   
+   $test = "five";
+   if ($mode eq "editable") {
+      is("five", $jcb->DisplayedName());
+   }
+   else {
+      is("", $jcb->DisplayedName());
+   }
+   $jcb->destroy;
 }
+	
+
 
 
 

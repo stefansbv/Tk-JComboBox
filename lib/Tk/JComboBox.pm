@@ -6,30 +6,33 @@
 ##
 ## ACKNOWLEDGEMENTS:
 ## Very little comes from nothing, and as the name suggests,
-## JComboBox.pm is superficially similar to the javax.swing.JComboBox
-## component which is owned by Sun Microsystems. This module shares
-## some of the same Method names and basic look and feel, but none
-## of the code.
+## JComboBox.pm is *superficially* similar to the javax.swing.JComboBox
+## class which is owned by Sun Microsystems. At best, this module shares
+## some method names, and basic look and feel, but the similarities end 
+## there. None of this widgets code comes from the class.
 ##
-## JComboBox.pm owed its original structure to Graham Barr's MenuEntry
-## (Thanks, Graham - it was a fine launchpad) and a hodgepodge of
-## methods and options that appeared useful in BrowseEntry, Optionmenu,
-## and the ComboEntry widget (part of Tk-DKW). Features that others
-## have asked for have also been added over time. So this widget is
-## basically a giant combo box stew with a few extra spices that I've
-## come up with myself.
+## JComboBox.pm owes its original structure to Graham Barr's MenuEntry
+## (Thanks, Graham - it was a fine base). It also uses various methods
+## and options borrowed from BrowseEntry, Optionmenu, and the
+## ComboEntry widget (part of Tk-DKW). This was done to make the widget
+## seem familiar to users of those widgets, and lessen the pain of
+## migration, and because I thought they were *good* features that I 
+## wanted in one widget. In addition, features that others have asked
+## for have been added over time. So this widget represents a combo box
+## stew with a few extra spices that I've come up with myself. 
 #######################################################################
 package Tk::JComboBox;
 
 use strict;
 use Carp;
 
+use Tie::Watch;
 use Tk;
 use Tk::CWidget;
 use Tk::CWidget::Util::Boolean qw(:all);
 
 use vars qw($VERSION);
-our $VERSION = "1.09";
+our $VERSION = "1.10";
 
 BEGIN
 {
@@ -37,7 +40,7 @@ BEGIN
    ## methods. These are all intended for INTERNAL use only. The
    ## methods act as a way of consolidating the internal hash keys
    ## that are being used. Using method calls instead of hash keys
-   ## helps ensure consistant usage throughout.
+   ## helps ensure consistant usage throughout, and easier on my eyes.
 
    sub CreateGetSet
    {
@@ -60,6 +63,7 @@ BEGIN
    CreateGetSet(LongestEntry  => '__JCB__ENTRY_LEN');
    CreateGetSet(Selected      => '__JCB__SELECTION');
    CreateGetSet(TempRelief    => '__JCB__RELIEF');
+   CreateGetSet(WatchVar      => '__JCB__WATCH_VAR');
    CreateGetSet(WatchList     => '__JCB__WATCH');
 }
 
@@ -163,6 +167,13 @@ sub Populate {
    $cw->CreateListboxPopup();
    $cw->BindSubwidgets();
 
+   ## Load up the List prior to other options being set (like textvariable)
+   ## NOTE: that this *could* end up coming back to haunt me, if I start
+   ## to add enhanced styles to individual list items, these styles could
+   ## end up conflicting with other options.
+   my $choices = delete $args->{-choices} || delete $args->{-options};
+   $cw->choices($choices) if $choices;
+
    ## Get All Advertised Widgets - constructed within Subroutines
    ## So that they can be used for ConfigSpecs routine
 
@@ -177,8 +188,7 @@ sub Populate {
 
    $cw->ConfigSpecs(
       ## Basic
-      -arrowbitmap         => [{-bitmap => $button}, undef, undef, 
-                                 $BITMAP],
+      -arrowbitmap         => [{-bitmap => $button}, undef, undef, $BITMAP],
       -arrowimage          => [{-image => $button}],
       -background          => [qw/DESCENDANTS background  Background/],
       -borderwidth         => [qw/Frame borderwidth BorderWidth 2/],
@@ -202,7 +212,7 @@ sub Populate {
       -selectborderwidth   => [$listbox],
       -state               => [qw/METHOD state State normal/],
       -takefocus           => [$entry, qw/takeFocus TakeFocus/, TRUE],
-      -textvariable        => [$entry, qw/textVariable Variable/],
+      -textvariable        => [qw/METHOD textVariable Variable/],
 
       ## Callbacks
       -buttoncommand       => [qw/CALLBACK/, undef, undef, \&see],
@@ -298,7 +308,7 @@ sub entrybackground
 {
    my ($cw, $val) = @_;
    return $cw->{Configure}{'-entrybackground'} unless defined $val;
-   $cw->configureSubwidgets([qw/Box Listbox/] => {-bg => $val});
+   $cw->configureSubwidgets([qw/Entry Listbox/] => {-bg => $val});
 }
 
 sub entrywidth
@@ -358,7 +368,7 @@ sub mode
    if ($mode eq MODE_EDITABLE) {
       $entry = $frame->Entry(
          -highlightthickness => 0,
-         -borderwidth => 2,
+         -borderwidth => 1,
 	 -background => 'white',
          -insertwidth => 1,
          -relief => 'flat',
@@ -410,6 +420,29 @@ sub state
 
    if ($state eq 'disabled')  { $cw->DisableControls; }
    elsif ($state eq 'normal') { $cw->EnableControls;  }
+}
+
+sub textvariable
+{
+   my ($cw, $value) = @_;
+   my $existing = $cw->{Configure}{'-textvariable'};
+   return $existing unless defined $value;
+
+   croak "Invalid textvariable type! Expected scalar reference" 
+      if defined($value) && ref($value) ne "SCALAR";
+
+   $cw->WatchVar->Unwatch if defined($cw->WatchVar);
+   my $tmpVal = $$value;
+
+   untie $value if tied $value;
+
+   my $watch = Tie::Watch->new(
+      -variable => $value,
+      -store    => sub {$cw->TextvarStore(@_);},
+      -fetch    => sub {return $cw->TextvarFetch(@_);}
+   );
+   $cw->WatchVar($watch);
+   $cw->TextvarStore($watch, $tmpVal) if defined($tmpVal);
 }
 
 #############################################################################
@@ -540,7 +573,7 @@ sub getItemValueAt
    return $cw->DisplayedName() if (!defined($index) || $index < 0);
 
    my $item = $cw->List->[$index];
-   return $item->value if defined($item->value);
+   return $item->value if defined($item->value) && $item->value ne "";
    return $item->name;
  }
 
@@ -821,8 +854,8 @@ sub AutoFind
    $cw->LastAFSearch($searchStr);
 
    ## For all Cases, clear the selection from the Listbox
-
    $listbox->selectionClear(0, 'end');
+
    ## There is no matching entry: Hide the popup if displayed, and
    ## Delete any autocompletion characters from the Edit Box, if
    ## -complete is enabled.
@@ -1034,8 +1067,6 @@ sub DisplayedName
 
    ## Mode is readonly, so we're dealing with Label widget.
    if ($cw->mode eq MODE_UNEDITABLE) {
-      my $tv = $entry->cget('-textvariable');
-      $$tv = $value if (defined($tv) && ref($tv) eq 'SCALAR');
       $entry->configure(-text => $value);
 
    ## If the mode is editable, then we're dealing with an Entry
@@ -1250,7 +1281,7 @@ sub PopupCreate {
       }
       $popupPosY = $maxY - $popupHeight;
    }
-
+ 
    ## Position and adjust the width/height of the Popup prior to display.
    $popup->geometry(sprintf("%dx%d+%d+%d",
       $popupWidth,
@@ -1515,6 +1546,33 @@ sub Tab
    $cw->Return;
    $cw->focusNext;
 }
+
+sub TextvarFetch
+{
+   return shift->getItemValueAt('selected');
+}
+
+sub TextvarStore 
+{
+   my ($cw, $watch, $value) = @_;
+
+   if (!defined($value) || $value eq "") {
+      $cw->clearSelection();
+      return;
+   }
+
+   ## If the item value exists within the list, then selected it.
+   my $index = $cw->getItemIndex($value, -type => 'value');
+   if (defined($index) && $index != -1) {
+      print "index: $index\n";
+      $cw->setSelectedIndex($index);
+   }
+   ## Otherwise, only set it, if the mode is editable (allows
+   ## values that are not in the list.
+   else {
+      $cw->DisplayedName($value) if $cw->mode eq MODE_EDITABLE;
+   }
+}   
 
 sub UpDown
 {
