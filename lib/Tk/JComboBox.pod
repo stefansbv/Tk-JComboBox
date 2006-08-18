@@ -266,7 +266,7 @@ Specifies a function to call immediately before the popup is shown. This is avai
 
 =item Switch: -selectcommand/-browsecmd
 
-Specifies a function to call every time a selection is made within the JComboBox. The specified function will be passed the following arguments, in this order: $jcbWidget, $selectedIndex, $selectedValue, $selectedName. In cases where a value is not specified for an entry, the value will be the same as for $selectedName. In I<editable> mode, when an entry is displayed that does not appear within the Listbox, the $selectedIndex will be set to -1, and both the selectedName and selectedValue will be the value displayed within the Box subwidget. The selectcommand CALLBACK will only be called once after each change to the selection. This option is roughly equivalent to the -browsecmd and -browse2cmd found in BrowseEntry.
+Specifies a function to call every time a selection is made within the JComboBox. The specified function will be passed the following arguments, in this order: $jcbWidget, $selectedIndex, $selectedValue, $selectedName. In cases where a value is not specified for an entry, the value will be the same as for $selectedName. In I<editable> mode, when an entry is displayed that does not appear within the Listbox, the $selectedIndex will be set to -1, and both the selectedName and selectedValue will be the value displayed within the Entry subwidget. The selectcommand CALLBACK will only be called once after each change to the selection. This option is roughly equivalent to the -browsecmd and -browse2cmd found in BrowseEntry.
 
 =item Switch: -validatecommand
 

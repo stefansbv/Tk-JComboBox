@@ -1,5 +1,59 @@
 Revision history for Perl extension Tk::JComboBox.
 
+1.11 Bug Fixes:
+
+   - Bug: incorrect behavior when state is disabled twice in a row.
+     reported via rt[at]cpan.org (#19154) by: Neal
+
+     Description: When JComboBox state is disabled, in addition to
+      freezing the controls, the foreground colors are replaced to 
+      provide a visual clue that the widget was disabled, which 
+      is inline with other Tk widget behavior. Unfortunately, due to
+      a bug in the DisableControls method, setting the state to 
+      disabled twice in a row, resulted in the foreground color not
+      getting restored correctly.
+     
+     Resolution: Neal provided a patch to the faulty method, which 
+      corrected the problem and doesn't appear to introduct any 
+      side-effects that I could observe during testing. Patch gratefully
+      accepted, and applied to code.      
+
+   - Questionable behavior: hard-coded color (white) for popup listbox bg
+     reported via rt[at]cpan.org (#18357) by: ozcat[at]bigpond.net.au
+     - resolution: removed hard-code color.
+
+     Notes: I vaguely have some recollection of changing this to be white
+     because I wanted to ensure default behavior, but in retrospect, 
+     this was a big mistake, and meant that default user/env  preferences 
+     would be ignored. Glad someone called me on it...
+
+   - Bug: Forgotten debug line left in code. 
+     reported via rt[at]cpan.org (#17785)  by: northwind_1980 
+     - resolution: removed line.
+
+   - Bug: Invalid behavior related to grab (again... aaarrgh!)
+     reported via newsgroup and email by Lars Oeschey
+
+     Description: 
+       Lars sent sample code that featured two JComboBox instances, one 
+       defined a -selectcommand callback which called setSelectedIndex(0), 
+       and then showPopup in the other instance. The result: grab settings
+       were messed up.
+
+     Problem: the problem was in the ButtonRelease event handler. In it,
+      I called setSelectedIndext (which in turn triggers the selectcommand
+      callback), before calling hidePopup. Big mistake. This appears to be
+      the only place left in the code where they are ordered this way. 
+      hidePopup should always be called before triggering the selectcommand
+      callback, otherwise it's very easy to get the current grab mixed up,
+      before hidePopup has had a chance to clear it correctly.
+ 
+     Resolution: reversed ordering of the two lines in ButtonRelease, and 
+      the test code appears to work correctly.
+
+   - Documentation updates: Looking over the docs in AnnoCPAN I noticed that
+     some of the Subwidgets were mislabled. This has been corrected.
+
 1.10 Bug Fix: corrected -textvariable problems.
 
    - Bug reported via c.l.p.tk [Tk::JComboBox Question - 

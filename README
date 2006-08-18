@@ -1,48 +1,77 @@
-Tk/JComboBox version 1.10
+Tk/JComboBox version 1.11
 =========================
 
 CHANGES OVERVIEW: (details below)
 
-  New implementation for -textvariable option to correct buggy behavior.
+  Maintenance release to correct various minor bugs and annoyances.
  
 OVERVIEW:
 
 JComboBox is a Combo Box implementation that combines several features of the various Combo Box implementations available for Perl/Tk and attempts to provide a solution that should cover the majority of your Combo Box needs. The implementation tends to skew somewhat towards the Java and Win32 implementation of a Combo Box more than the Motif one.
 
-There have been SEVERAL changes since the 0.02 version of this widget -- hopefully all positive. I've spent the majority of the time writing a fairly robust test suite, though there are still a few gaps which are being worked on. A considerable amount of effort has gone into verifying that the unit tests will work on multiple platforms, though I suspect that there may yet be a problem or two remaining (mostly regarding event generation which seems to be a bit tempermental and tests that use fonts). I've also converted my older HTML docs to pod, and updated it to reflect the current state of the widget. Thanks to everyone who contributed suggestions, code, and misc feedback. I hope this widget is useful for others.
+TEST SUITE:
 
-CHANGES for 1.10 RELEASE:
+ I've spent the majority of the time writing a fairly robust test suite, though there are still a few gaps which are being worked on. A considerable amount of effort has gone into verifying that the unit tests will work on multiple platforms, though I suspect that there may yet be a problem or two remaining (mostly regarding event generation which seems to be a bit tempermental and tests that use fonts). I suspect that many of the reported failures I see have more to do with a bad installation of Tk than JComboBox, but your mileage may vary. The tests mostly serve as a tool for me for regression testing, and for anyone else who decides to tinker with the source. I'm always interested in hearing ways in which the test suite can be improved.
 
-1.10 Bug Fix: corrected -textvariable problems.
+ Thanks to everyone who has contributed suggestions, code, and any other feedback. I'm not always able to incorporate that feedback, but I've always found it to be helpful. I hope this widget continues to be useful.
 
-   - Bug reported via c.l.p.tk [Tk::JComboBox Question - 
-     http://groups.google.com/group/comp.lang.perl.tk/msg/2971450102b53533
-     textvariable option not working correctly: when set, a default value
-     *does* appear in the JCombobox Entry, however once the Button is 
-     pressed, it does not appear selected (or scrolled to) within the 
-     Listbox. This occcurs when the Button is pushed once. If pressed again
-     the item does show as selected.
+CHANGES for 1.11 RELEASE: (Full Change history in Changes file)
 
-     The problem: Because I wasn't a big fan of the option, I implemented
-     it in an overly simplistic way, by delegating it to the Entry widget.
-     This meant that it if the variable was assigned a value, then it would
-     appear within the Entry widget, but the rest of the JComboBox code
-     would not necessarily be aware of it. There was code that was "set"
-     the value as selected when the Popup Listbox was closed, but not 
-     when it was triggered.
+1.11 Bug Fixes:
 
-     The solution: I tried two different solutions, the one I decided to 
-     go with was what I probably should have done orginally which was tie
-     the textvariable to JComboBox code, so that stores/fetches were tied
-     to JComboBox methods, and there was some measure of consistancy in the
-     implementation. For example, before if the JComboBox was in readonly
-     mode, you could use -textvariable to set a value that didn't appear
-     within the Listbox, which broke the basic model of the mode. I used
-     Steve Lidie's Tie::Watch class to implement the fix.
+   - Bug: incorrect behavior when state is disabled twice in a row.
+     reported via rt[at]cpan.org (#19154) by: Neal
 
-   - Docs and Test cases were updated to reflect the modifications, and I 
-     did some more proofreading on JComboBox.pod to remove typos and a few
-     inaccuracies. 
+     Description: When JComboBox state is disabled, in addition to
+      freezing the controls, the foreground colors are replaced to 
+      provide a visual clue that the widget was disabled, which 
+      is inline with other Tk widget behavior. Unfortunately, due to
+      a bug in the DisableControls method, setting the state to 
+      disabled twice in a row, resulted in the foreground color not
+      getting restored correctly.
+     
+     Resolution: Neal provided a patch to the faulty method, which 
+      corrected the problem and doesn't appear to introduct any 
+      side-effects that I could observe during testing. Patch
+      gratefully accepted, and applied to code.      
+
+   - Questionable behavior: hard-coded color (white) for listbox bg
+     reported via rt[at]cpan.org (#18357) by: ozcat[at]bigpond.net.au
+     - resolution: removed hard-code color.
+
+     Notes: I have some recollection of changing this to be white
+     because I wanted to ensure default behavior, but in retrospect, 
+     this was a big mistake, and meant that default user/env
+     preferences would be ignored. Glad someone called me on it...
+
+   - Bug: Forgotten debug line left in code. 
+     reported via rt[at]cpan.org (#17785)  by: northwind_1980 
+     - resolution: removed line.
+
+   - Bug: Invalid behavior related to grab (again... aaarrgh!)
+     reported via newsgroup and email by Lars Oeschey
+
+     Description: 
+       Lars sent sample code that featured two JComboBox instances, one 
+       defined a -selectcommand callback which called 
+       setSelectedIndex(0), and then showPopup in the other instance.
+       The result: grab settings were messed up.
+
+     Problem: the problem was in the ButtonRelease event handler. In
+      it, I called setSelectedIndext (which in turn triggers the
+      selectcommand callback), before calling hidePopup. Big mistake.
+      This appears to be the only place left in the code where they are
+      ordered this way. hidePopup should always be called before
+      triggering the selectcommand callback, otherwise it's very easy
+      to get the current grab mixed up, before hidePopup has had a
+      chance to clear it correctly.
+ 
+     Resolution: reversed ordering of the two lines in ButtonRelease,
+      and the test code appears to work correctly.
+
+   - Documentation updates: Looking over the docs in AnnoCPAN I noticed
+     that some of the Subwidgets were mislabled. This has been
+     corrected.
 
 INSTALLATION
 
@@ -63,7 +92,7 @@ This module requires these other modules and libraries:
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2005 Rob Seegel
+Copyright (C) 2006 Rob Seegel
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

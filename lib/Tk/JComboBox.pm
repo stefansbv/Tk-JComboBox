@@ -32,7 +32,7 @@ use Tk::CWidget;
 use Tk::CWidget::Util::Boolean qw(:all);
 
 use vars qw($VERSION);
-our $VERSION = "1.10";
+our $VERSION = "1.11";
 
 BEGIN
 {
@@ -369,7 +369,6 @@ sub mode
       $entry = $frame->Entry(
          -highlightthickness => 0,
          -borderwidth => 1,
-	 -background => 'white',
          -insertwidth => 1,
          -relief => 'flat',
          -validatecommand => [$cw => 'ValidateCommand']
@@ -994,6 +993,14 @@ sub CreateListboxPopup {
               [$cw => 'ButtonRelease', Ev('index',Ev('@'))]);
 }
 
+#############################################################################
+## Responsible for handling logic that implements state changes to and from
+## a disabled state.
+##
+## NOTE: Code in this method was updated using a patch submitted by 
+## Neal, 8 MAY 2006 that corrected a bug. When state was set to disabled 
+## twice in a row, the foreground color would not be changed back.
+#############################################################################
 sub DisableControls
 {
    my $cw = shift;
@@ -1002,19 +1009,24 @@ sub DisableControls
 
    my $bg = $cw->cget('-disabledbackground');
    my $fg = $cw->cget('-disabledforeground');
-   $button->{$SWAP_FG} = $button->cget('-foreground');
-   $button->configure(-foreground => $fg);
-
+   if ($fg ne $button->cget('-foreground')) {
+      $button->{$SWAP_FG} = $button->cget('-foreground');
+      $button->configure(-foreground => $fg);
+   }
    $cw->configure(-takefocus => 0);
    if ($cw->mode eq MODE_EDITABLE) {
       $entry->configure(-state => 'disabled');
       return if $Tk::VERSION >= 804;
 
-      $entry->{$SWAP_BG} = $entry->cget('-background');
-      $entry->configure(-background => $bg);
+      if ($bg ne $button->cget('-background')) {
+         $entry->{$SWAP_BG} = $entry->cget('-background');
+         $entry->configure(-background => $bg);
+      }
    }
-   $entry->{$SWAP_FG} = $entry->cget('-foreground');
-   $entry->configure(-foreground => $fg);
+   if ($fg ne $button->cget('-foreground')) {
+      $entry->{$SWAP_FG} = $entry->cget('-foreground');
+      $entry->configure(-foreground => $fg);
+   }
 }
 
 sub EnableControls
@@ -1453,8 +1465,9 @@ sub ButtonRelease
    my ($cw, $index) = @_;
    return unless $cw->state eq 'normal';
    return unless $cw->popupIsVisible;
-   $cw->setSelectedIndex($index) if defined($index);
    $cw->hidePopup;
+   $cw->setSelectedIndex($index) if defined($index);
+
 }
 
 sub ButtonUp {
@@ -1564,7 +1577,6 @@ sub TextvarStore
    ## If the item value exists within the list, then selected it.
    my $index = $cw->getItemIndex($value, -type => 'value');
    if (defined($index) && $index != -1) {
-      print "index: $index\n";
       $cw->setSelectedIndex($index);
    }
    ## Otherwise, only set it, if the mode is editable (allows
