@@ -9,7 +9,7 @@
 ## JComboBox.pm is *superficially* similar to the javax.swing.JComboBox
 ## class which is owned by Sun Microsystems. At best, this module shares
 ## some method names, and basic look and feel, but the similarities end 
-## there. None of this widgets code comes from the class.
+## there. None of this code comes from the class. 
 ##
 ## JComboBox.pm owes its original structure to Graham Barr's MenuEntry
 ## (Thanks, Graham - it was a fine base). It also uses various methods
@@ -32,7 +32,7 @@ use Tk::CWidget;
 use Tk::CWidget::Util::Boolean qw(:all);
 
 use vars qw($VERSION);
-our $VERSION = "1.11";
+our $VERSION = "1.12";
 
 BEGIN
 {
@@ -176,16 +176,14 @@ sub Populate {
 
    ## Get All Advertised Widgets - constructed within Subroutines
    ## So that they can be used for ConfigSpecs routine
-
    my $entry   = $cw->Subwidget('Entry');
    my $button  = $cw->Subwidget('Button');
    my $listbox = $cw->Subwidget('Listbox');
    my $popup   = $cw->Subwidget('Popup');
 
-   ## This ConfigSpecs functions as a placeholder for the entire 
+   ## This ConfigSpecs functions as a core set for the entire 
    ## widget, and assumes that the mode is MODE_UNEDITABLE. Some 
    ## specs are overridden if the mode is MODE_EDITABLE.
-
    $cw->ConfigSpecs(
       ## Basic
       -arrowbitmap         => [{-bitmap => $button}, undef, undef, $BITMAP],
@@ -218,7 +216,7 @@ sub Populate {
       -buttoncommand       => [qw/CALLBACK/, undef, undef, \&see],
       -keycommand          => [qw/CALLBACK/],
       -matchcommand        => [qw/CALLBACK/],
-      -popupcreate         => [qw/CALLBACK/, undef, undef, \&PopupCreate],
+      -popupcreate         => [qw/CALLBACK/],
       -popupmodify         => [qw/CALLBACK/],
       -selectcommand       => [qw/CALLBACK/],
       -validatecommand     => [qw/CALLBACK/],
@@ -747,10 +745,21 @@ sub setSelectedIndex
 sub showPopup
 {
    my $cw = shift;
-   return if ($cw->popupIsVisible || $cw->getItemCount == 0);
 
    $cw->Callback(-popupcreate => $cw)
       if (ref($cw->cget('-popupcreate')) eq 'Tk::Callback');
+
+   ## Set up Popup height/width and positioning, based on various 
+   ## configured options.
+   $cw->PopupCreate;
+
+   ## Provide a hook for developers to override details taken
+   ## care of within PopupCreate. -popupcreate should be 
+   ## encouraged over -popupmodify.
+   $cw->Callback(-popupmodify => $cw)
+      if (ref($cw->cget('-popupmodify')) eq 'Tk::Callback');
+
+   return if ($cw->popupIsVisible || $cw->getItemCount == 0);
 
    my $popup = $cw->Subwidget('Popup');
    $popup->deiconify;
@@ -1300,11 +1309,6 @@ sub PopupCreate {
       $popupHeight,
       $popupPosX,
       $popupPosY));
-
-   ## Provide a hook for developers to modify configuration of Popup
-   ## prior to displaying it.
-   $cw->Callback(-popupmodify => $cw)
-      if (ref($cw->cget('-popupmodify')) eq 'Tk::Callback');
 }
 
 sub UpdateListboxHeight

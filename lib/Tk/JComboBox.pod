@@ -15,10 +15,10 @@ JComboBox is a L<composite widget|Tk::CWidget> that contains a text Label or Ent
 JComboBox borrows features from the Java Swing component bearing the same name, but falls short of being a true clone. Many of the methods and the general look and feel should be familiar to java developers. JComboBox also combines several features offered by many of the other "Combo Box" implementations, and works in two modes: I<editable> and I<readonly>.
 
 In I<readonly> mode, JComboBox offers similar functionality to Optionmenu. It is basically a labeled button that activates a popup list.  An item from the list is displayed on the Button when selected.
- 
+
 When I<editable>, JComboBox somewhat resembles BrowseEntry. That is, the widget is composed of an Entry widget with a Button to the right of it. As in the editable mode, the Button activates a popup Listbox from which a single item can be selected.
 
-For more detailed information on using this widget, refer to the L<JComboBox tutorial|Tk::JComboBox::Tutorial>.
+For more detailed information on using this widget, refer to the L<JComboBox tutorial|Tk::JComboBox::tutorial>.
 
 =head1 COMPONENTS
 
@@ -74,7 +74,7 @@ Used to contain one or more entries, one of which can be selected and displayed 
 
 =head1 OPTIONS
 
-JComboBox supports a long list of options, so to try and break them up a bit I've grouped them in sections. The Basic section contains options that implement or override standard L<Tk options|Tk::options> or deal with simple things such as colors. The Callback section contains all the options that can have configured Callbacks. The Miscellaneous section contains options that are unique to this widget. These options provide complex functionality that can alter look and feel or provide for initialization shortcuts.
+JComboBox supports a long list of options, so to try and break them up a bit I've grouped them in sections. The Basic section contains options that implement or override standard Tk options. or deal with simple things such as colors. The Callback section contains all the options that can have configured Callbacks. The Miscellaneous section contains options that are unique to this widget. These options provide complex functionality that can alter look and feel or provide for initialization shortcuts.
 
 =head2 Basic options
 
@@ -238,19 +238,21 @@ And the following would also be expected:
    $this = 2;        ## changes the selection to "two"
    $this = "three";  ## changes the selection to "three"
 
-Because no value for "three" was specified, the value defaults to "three" for the purpose of both examples. Note that the mode may limit what can be set as well. For example, in "readonly" mode, the only items that can be selected are those that appear within the Listbox. Using -textvariable does not provide a workaround to this, and is subject to the same restrictions.
+Because no value for "three" was specified, the value defaults to "three" for the purpose of both examples. Note that the mode may limit what can be set as well. For example, in "readonly" mode, the only items that can be selected are those that appear within the Listbox. 
+
+Note: Unlike other widgets, -textvariable is tightly controlled within JComboBox and experimentation is recommended if you plan to use it. It can be used as a shortcut for setting/retrieving item values. 
 
 =back
 
 =head2 Callback options
 
-=over 4
-
 Some of the options have changed names since the previous version. -menucreate/-menumodify, for example are now, -popupcreate/-popupmodify. After having now looked at the code for a year or so, the old names felt wrong. After all, it is not a menu that is displayed, its a Listbox, and the two are very different. Because I had a subwidget called Popup, it seemed to make more sense to me for these options to use "popup" instead of "menu". 
+
+=over 4
 
 =item Switch: -matchcommand
 
-Specifies a function that will be used to determine whether a specified String matches a field within the popup Listbox. This callback will be invoked every time a search for an index is done. This callback will be utilized within the I<getItemIndex> method, and through the Autofind functionality (which uses getItemIndex).
+Specifies a callback that will be used to determine whether a specified String matches a field within the popup Listbox. This callback will be invoked every time a search for an index is done. This callback will be utilized within the I<getItemIndex> method, and through the Autofind functionality (which uses getItemIndex).
 
 Callbacks are passed at least two parameters: $searchStr and $field. I<searchStr> contains the search string. This will be the search pattern. When the -matchcommand is not set, all special regex patterns are escaped, and the search is generally anchored to the start of any string it will compared to. I<field> is a single item within the list that the searchStr is being checked against. It will either be the name, which is the String that appears in the list, or it's value. The value is non-visible element associated with the visible one. A callback should return 1 if the match succeeds, and 0 otherwise.
 
@@ -258,19 +260,21 @@ Refer to the tutorial for more information on this option.
 
 =item Switch: -popupcreate/-listcmd
 
-Specifies a function to call when a call is made that launches the popup Listbox. There are a number of events that cause the popup to be displayed, including the showPopup method. This callback is similar to BrowseEntry's -listcmd option, which is also available here.
+Specifies a callback that will be invoked prior to showing the Popup Listbox. This callback is the first of two callback options that can be invoked prior to displaying the Popup. The most common use case would be for someone wanting to dynamically populate the contents of the widget prior to displaying it. After this callback is invoked JComboBox will go through it's own internal routine of configuring the height/width and positioning characteristics of the Popup. Some of this is driven by various configuration options. The downside of this is that any configuration of this type done within a popupcreate callback may be overridden.
+
+Note for versions prior to 1.12: In prior versions, this callback could be configured to completely replace the internal positioning/configuration of the Popup. This is a good deal of trouble for soneone to go through, and it didn't seem to be a likely need -- espcially given the presence of the -popupmodify option. Developers using this option in older versions, can call $jcb->PopupCreate within their custom -popupcreate callback to get an aproximation of the functionality in 1.12 and beyond. Also in older versions if the JComboBox contained no items or was already being displayed this callback would not be invoked. This is no longer the case.
 
 =item Switch: -popupmodify
 
-Specifies a function to call immediately before the popup is shown. This is available as a way of overriding some of the formatting/placement done within the built-in routines.
+Specifies a callback to call immediately before the Popup is shown. This is the second of two callbacks called prior to displaying the Popup. This callback can be used to override any height/width or positional configuration done prior to this callback. It serves as a mechanism for the developer to have the final word in how the Popup should display before it is shown. The expectation is that use of this option will be rare and most developers will prefer the -popupcreate option over this one.
 
 =item Switch: -selectcommand/-browsecmd
 
-Specifies a function to call every time a selection is made within the JComboBox. The specified function will be passed the following arguments, in this order: $jcbWidget, $selectedIndex, $selectedValue, $selectedName. In cases where a value is not specified for an entry, the value will be the same as for $selectedName. In I<editable> mode, when an entry is displayed that does not appear within the Listbox, the $selectedIndex will be set to -1, and both the selectedName and selectedValue will be the value displayed within the Entry subwidget. The selectcommand CALLBACK will only be called once after each change to the selection. This option is roughly equivalent to the -browsecmd and -browse2cmd found in BrowseEntry.
+Specifies a callback to call every time a selection is made within the JComboBox. The specified callback will be passed the following arguments, in this order: $jcbWidget, $selectedIndex, $selectedValue, $selectedName. In cases where a value is not specified for an entry, the value will be the same as for $selectedName. In I<editable> mode, when an entry is displayed that does not appear within the Listbox, the $selectedIndex will be set to -1, and both the selectedName and selectedValue will be the value displayed within the Entry subwidget. The selectcommand CALLBACK will only be called once after each change to the selection. This option is roughly equivalent to the -browsecmd and -browse2cmd found in BrowseEntry.
 
 =item Switch: -validatecommand
 
-Specifies a script to evaluate when you want to validate the input into the entry widget. Setting it to undef disables this feature (the default). This command must return a valid boolean value. If it returns 0 (or the valid boolean equivalent) then it means you reject the new edition and it will not occur and the invalidCommand will be evaluated if it is set. If it returns 1, then the new edition occurs. More details of this option can be found in the L<documentation|Tk::Entry/VALIDATION> for the Entry widget. Also take a look at the -validate option listed later in this document.
+Specifies a callback to evaluate when you want to validate the input into the entry widget. Setting it to undef disables this feature (the default). This command must return a valid boolean value. If it returns 0 (or the valid boolean equivalent) then it means you reject the new edition and it will not occur and the invalidCommand will be evaluated if it is set. If it returns 1, then the new edition occurs. More details of this option can be found in the L<documentation|Tk::Entry/VALIDATION> for the Entry widget. Also take a look at the -validate option listed later in this document.
 
 =back
 
@@ -294,7 +298,7 @@ B<-select> - Selects the first item in the list that matches the keystroke (in I
 
 B<-showpopup> - Specifies whether or not to display the Popup Listbox when a matching entry is found within the list. Defaults to B<1>.
 
-More information on this option can be found in the tutorial under L<Using Autofind|Tk::JComboBox::Tutorial/The Autofind Option>.
+More information on this option can be found in the tutorial under L<Using Autofind|Tk::JComboBox::tutorial/The Autofind Option>.
 
 =item Name: listHighlight
 
@@ -362,7 +366,7 @@ As of version 1.07, setting the -choices option will do more than simply populat
 
 As of version 1.08, a single array can be associated with multiple JComboBox instances. However, the precise behavior merits further explanation. Not all associated instances have the same relationship with the array. The first instance to be configured with the array becomes the master instance, and all other instances retain roles as observers. When changes are made to the array, both master and observers will be modified to reflect the change. Changes made to the master through its methods will reflected in the array, and those made to observers will not. If the master is reconfigured to use a different choices array, then all of the other observers will automatically be reconfigured as well. If an observer is reconfigured, then it will be the only one to be changed. If the new array is not already associated with other JComboBox instances, then the observer will become the master instance for the new array, 
 
-For more details on using this option, refer to the section in the tutorial, L<Access Through the Choices Array|Tk::JComboBox::Tutorial/Access Through the Choices Array>.
+For more details on using this option, refer to the section in the tutorial, L<Access Through the Choices Array|Tk::JComboBox::tutorial/Access Through the Choices Array>.
 
 =head1 METHODS
 
@@ -511,7 +515,7 @@ Hides the popup. The event handler is I<hidePopup>.
 
 =item Down 
 
-Moves the Listbox selection down by one entry as long as there is an entry for the selection to move to. Refer to documentation on L<-autofind|Tk::JComboBox::Tutorial/The Autofind Option> and L<-updownselect|Tk::JComboBox::Tutorial/The UpDownSelect Option>. The Event Handler is I<UpDown>.
+Moves the Listbox selection down by one entry as long as there is an entry for the selection to move to. Refer to documentation on L<-autofind|Tk::JComboBox::tutorial/The Autofind Option> and L<-updownselect|Tk::JComboBox::tutorial/The UpDownSelect Option>. The Event Handler is I<UpDown>.
 
 =item Escape
 
@@ -525,11 +529,11 @@ Sets the displayed entry as selected. Uses the I<Enter> event handler.
 
 The precise behavior of a Key press depends on the B<-mode> and the B<-autofind> option. The default behavior for I<readonly> mode is similar to what you might encounter in a Windows environment. The List items will be searched and the first entry that begins with the pressed letter will be selected, regardless of case. If the same key is pressed again, then the search will begin from the previous match. The Listbox will be shown, and the matching entry will be selected and visible.
 
-For the I<editable> mode, the default behavior is identical, except that instead of just the first letter, the entire String within the Entry will be used for the search. Refer to the Tutorial documentation on L<Customizing Interface Behavior|Tk::JComboBox::Tutorial/Customizing Interface Behavior> for more information. Uses the I<KeyPress> event handler.
+For the I<editable> mode, the default behavior is identical, except that instead of just the first letter, the entire String within the Entry will be used for the search. Refer to the Tutorial documentation on L<Customizing Interface Behavior|Tk::JComboBox::tutorial/Customizing Interface Behavior> for more information. Uses the I<KeyPress> event handler.
 
 =item Up
 
-Moves the Listbox selection up by one entry as long as there is an entry for the selection to move to. Refer to documentation on L<-updownselect|Tk::JComboBox::Tutorial/The UpDownSelect Option>. The Event Handler is I<UpDown>.
+Moves the Listbox selection up by one entry as long as there is an entry for the selection to move to. Refer to documentation on L<-updownselect|Tk::JComboBox::tutorial/The UpDownSelect Option>. The Event Handler is I<UpDown>.
 
 =back
 
@@ -593,17 +597,19 @@ On CPAN, there are a few more choices available:
 
 =item JBrowseEntry
 
-JBrowseEntry is maintained by Jim Turner, and began as an enhanced version of BrowseEntry in the main distribution. JBrowseEntry initially tweaked the appearance of the composite, and added key bindings including one to search for List entries corresponding to a key press. JBrowseEntry has since been modified to have a Win32 appearance when used on Windows versions. One of the nice touches is that it has the option of specifying a different bitmap for arrow button for when the widget has focus. That's a nice idea and one way of working around focus and highlighting issues -- I might keep that in the mind for the future.
+JBrowseEntry is maintained by Jim Turner, and began as an enhanced version of BrowseEntry in the main distribution. JBrowseEntry initially tweaked the appearance of the composite, and added key bindings including one to search for List entries corresponding to a key press. JBrowseEntry has since been modified to have a Win32 appearance when used on Windows versions. One of its nice touches is that it has the option of specifying a different bitmap for arrow button for when the widget has focus. It's a nice idea, and one way of working around focus and highlighting issues -- I might keep that in the mind for the future.
 
-I'm not sure how JBrowseEntry currently compares to BrowseEntry, but at one time JBrowseEntry provided key bindings where JComboBox did not, and since it was an enhanced BrowseEntry, someone could replace any instances of BrowseEntry without breaking their existing code, and then take advantage of the enhancements. The same can not be said for JComboBox. As of release 1.0, JComboBox also has key bindings and is generally more configurable than JBrowseEntry. JComboBox has a larger number of options and methods to learn, and can be more difficult to learn. 
+I'm not precisely sure how JBrowseEntry currently compares to BrowseEntry, but at one time JBrowseEntry provided key bindings where JComboBox did not, and since it was an enhanced BrowseEntry, someone could replace any instances of BrowseEntry without breaking their existing code, and then take advantage of the enhancements, which is a real advantage for someone looking for a nice upgrade with little to no integration work. The same can <i>not</i> be said for JComboBox.It was never intended as a clone or enhanced BrowseEntry. 
+
+JBrowseEntry's document isn't that current unfortunately. It leads one to believe that JComboBox does not provide key bindings. At one time, this was true, but as of release 1.0, JComboBox also has key bindings and is generally more configurable than JBrowseEntry, and provides more out-of-the-box functionality. To be fair, this does come at price: JComboBox has a larger number of options and methods, and can be more difficult to learn. The hopeful payoff is that less time should be required to implement common Combo Box behavior leaving more time to implement core business requirements. 
 
 =item ComboEntry
 
-ComboEntry is part of distribution (Tk-DKW) created by Damion Wilson. This was one of the first Combo Box-type widgets available on CPAN, outside of the main distribution. Damion's distribution served as a good source of examples when I was first learning Tk, and I have a soft spot for them, but I've found many of the widgets in the distribution to be buggy, and not documented very well. Also, the distribution has not been updated since 1999, so it appears to be unsupported. Having said that, ComboEntry may still serve as a useful starting point for your own customized version.
+ComboEntry is part of distribution (Tk-DKW) created by Damion Wilson. This was one of the first Combo Box-type widgets available on CPAN, outside of the main distribution. Damion's distribution served as a good source of examples when I was first learning Tk, and I have a soft spot for them, but I've found many of the widgets in the distribution to be buggy, and not documented very well. Also, the distribution has not been updated since 1999, so it appears to be unsupported. Having said that, ComboEntry may still serve as a useful starting point for your own customized version. 
 
 =item MenuEntry
 
-MenuEntry is part of Graham Barr's, Tk-GBARR distribution, which is currently maintained by Slaven Rezic. MenuEntry was one of the "unfinished" widgets included in that distribution, and was the widget I used as the initial starting point for this widget (Thanks, Graham!). It is as bare bones an implementation as you're likely to find, plus I liked it's look. I initially made only a few minor modifications, then a few more, and finally it got to the point where it no longer resembled Graham's widget. Like ComboEntry, I think this is a great widget for use as a starting point, when creating your own.
+MenuEntry is part of Graham Barr's, Tk-GBARR distribution, which is currently maintained by Slaven Rezic. MenuEntry was one of the "unfinished" widgets included in that distribution, and was the widget I used as the initial starting point for this widget (Thanks, Graham!). It is as bare bones an implementation as you're likely to find, plus I liked it's look. I initially made only a few minor modifications, then a few more, and finally it got to the point where it no longer resembled Graham's widget. Like ComboEntry, I think this is a great widget for use as a starting point, when creating your own, if you should decide to go that route.
 
 =item HistEntry
 
@@ -617,9 +623,8 @@ MatchEntry is an Entry/Listbox combination maintained by Wolfgang Hommel that is
 
 =head1 VERSION
 
-This document covers the 1.10 release of JComboBox.
+This document covers the 1.12 release of JComboBox.
 
 =head1 AUTHOR
 
-Rob Seegel (RobSeegel@comcast.net)
-   
+Rob Seegel (RobSeegel@comcast.net)   

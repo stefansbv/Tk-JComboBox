@@ -3,6 +3,10 @@ Makefile.PL
 MANIFEST
 README
 TestNotes
+examples/README
+examples/popupCreate.pl
+examples/simpleEd.pl
+examples/simpleRO.pl
 lib/Tk/CWidget.pm
 lib/Tk/CWidget.pod
 lib/Tk/CWidget/Util/Boolean.pm
@@ -17,5 +21,6 @@ t/03_Options_Callback.t
 t/04_Options_Misc.t
 t/05_Methods.t
 t/06_Bugs.t
+t/07_Pod.t
 t/button.gif
 META.yml                                 Module meta-data (added by MakeMaker)

@@ -20,7 +20,7 @@ use strict;
 
 use Tk;
 use Tk::JComboBox;
-use Test::More tests => 73;
+use Test::More tests => 71;
 
 my $mw = MainWindow->new;
 
@@ -131,12 +131,8 @@ sub TestCreateModifyPopup
       $button->eventGenerate('<ButtonPress-1>');
       $jcb->hidePopup;
       $mw->update;
-      is($cb, 1);
-  
-      $jcb->configure(-popupcreate => sub { $cb++; $jcb->PopupCreate;});
-      $button->eventGenerate('<ButtonPress-1>');
-      $mw->update;
-      is($cb, 3, 'both -popupcreate/-popupmodify configured - both called');
+      is($cb, 2);
+      $cb = 0;
       $jcb->destroy;
    };
    fail "\nFail - TestCreateModifyPopup($mode): $@" if $@;
@@ -182,32 +178,37 @@ sub TestPopup
       );
       $jcb->showPopup;
       $jcb->hidePopup;
-      is($cb, 0, "-popup$type not called, when there are no items");
+      is($cb, 1, "-popup$type called, even when there are no items");
+      $cb = 0;
 
       my $button = $jcb->Subwidget('Button');
       $button->eventGenerate('<ButtonPress-1>');
       $jcb->hidePopup;
       $mw->update;
-      is($cb, 0, "-popup$type not called, when there are no items");
+      is($cb, 1, "-popup$type called, even when there are no items");
+      $cb = 0;
 
       ## Add one item to the combobox 
       $jcb->addItem("one");
-
       $jcb->showPopup;
       is($cb, 1, "-popup$type - configured, items, popup invisible");
+      $cb = 0;
    
       $jcb->showPopup;
       $jcb->hidePopup;
       is($cb, 1, "-popup$type not called when popup is visible");
- 
+      $cb = 0;
+
       $button->eventGenerate('<ButtonPress-1>');
       $mw->update;
-      is($cb, 2, "-popup$type called from <ButtonPress-1>");
+      is($cb, 1, "-popup$type called from <ButtonPress-1>");
+      $cb = 0;
 
       $button->eventGenerate('<ButtonPress-1>');
       $jcb->hidePopup;
       $mw->update;
-      is($cb, 2, "-popup$type not called when popup is visible");
+      is($cb, 1, "-popup$type not called when popup is visible");
+      $cb = 0;
       $jcb->destroy;
    };
    fail "\nFail - TestPopup($mode): $@" if $@;

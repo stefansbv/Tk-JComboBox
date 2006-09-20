@@ -1,5 +1,44 @@
 Revision history for Perl extension Tk::JComboBox.
 
+1.12 Maintenance/Bug Fixes:
+
+This is a maintenance release of Tk-JComboBox that addresses an 
+issue with the -popupcreate callback option. In addition, I've
+updated some test cases, added an examples directory, and updated
+some of the Pod files. There is a potential backward compatibility
+issue with this release (the -popupcreate option), but there is no
+major new functionality (At least one new option may be coming in
+the next release...)
+ 
+   - Issue: jdtoronto posted a bug report on the Perlmonks site.
+     http://perlmonks.org/?node_id=573624. He was attempting to 
+     use the popupcreate option to modify the JComboBox each time
+     the Popup was triggered. In version 1.11 and for at least the
+     past few versions, registering a callback to this option 
+     meant that you were assuming responsibility for configuring
+     the height/width and positioning of the JCombobox, which can
+     be a pain. 
+
+     -- Resolution: I decided that this was too big a pain to pass on
+     to users, and modified the option so that the physical 
+     configuration occurs outside of this callback. -popupmodify
+     can still be used to override the layout properties if needed.
+     The result is that popupcreate is simpler to implement (it was
+     mostly provided as a means to alter the list item contents of
+     the JComboBox). Documentation, and test cases were adjusted 
+     accordingly, plus an example was provided in the new examples
+     directory that demonstrates the option in action.
+
+   - After conversation with Fred Jan, I reconsidered the implementation
+     of the -textvariable option. JComboBox goes a bit further than some
+     other widgets and heavily controls -textvariable use. I've decided
+     to leave it as is for now, but to hold onto the correspondance and
+     possibly revisit it in the future. No changes aside from a tweak
+     to the docs.
+
+   - Took another pass through the JComboBox docs to update several links
+     that were incorrect, and fix some wording here and there.
+
 1.11 Bug Fixes:
 
    - Bug: incorrect behavior when state is disabled twice in a row.

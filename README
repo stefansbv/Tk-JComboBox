@@ -1,4 +1,4 @@
-Tk/JComboBox version 1.11
+Tk/JComboBox version 1.12
 =========================
 
 CHANGES OVERVIEW: (details below)
@@ -11,67 +11,50 @@ JComboBox is a Combo Box implementation that combines several features of the va
 
 TEST SUITE:
 
- I've spent the majority of the time writing a fairly robust test suite, though there are still a few gaps which are being worked on. A considerable amount of effort has gone into verifying that the unit tests will work on multiple platforms, though I suspect that there may yet be a problem or two remaining (mostly regarding event generation which seems to be a bit tempermental and tests that use fonts). I suspect that many of the reported failures I see have more to do with a bad installation of Tk than JComboBox, but your mileage may vary. The tests mostly serve as a tool for me for regression testing, and for anyone else who decides to tinker with the source. I'm always interested in hearing ways in which the test suite can be improved.
+ I've spent the majority of the time writing a fairly robust test suite, though there are still a few gaps which are being worked on. A considerable amount of effort has gone into verifying that the unit tests will work on multiple platforms, though I suspect that there may yet be a problem or two remaining (mostly regarding event generation (which seems to be a bit tempermental) and tests that use fonts. I suspect that many of the reported failures I see have more to do with a bad installation of Tk than JComboBox, but your mileage may vary. The tests mostly serve as a tool for me for regression testing, and for anyone else who decides to tinker with the source. I'm always interested in hearing ways in which the test suite can be improved.
 
  Thanks to everyone who has contributed suggestions, code, and any other feedback. I'm not always able to incorporate that feedback, but I've always found it to be helpful. I hope this widget continues to be useful.
 
-CHANGES for 1.11 RELEASE: (Full Change history in Changes file)
+CHANGES for 1.12 RELEASE: (Full Change history in Changes file)
 
-1.11 Bug Fixes:
+1.12 Maintenance/Bug Fixes:
 
-   - Bug: incorrect behavior when state is disabled twice in a row.
-     reported via rt[at]cpan.org (#19154) by: Neal
-
-     Description: When JComboBox state is disabled, in addition to
-      freezing the controls, the foreground colors are replaced to 
-      provide a visual clue that the widget was disabled, which 
-      is inline with other Tk widget behavior. Unfortunately, due to
-      a bug in the DisableControls method, setting the state to 
-      disabled twice in a row, resulted in the foreground color not
-      getting restored correctly.
-     
-     Resolution: Neal provided a patch to the faulty method, which 
-      corrected the problem and doesn't appear to introduct any 
-      side-effects that I could observe during testing. Patch
-      gratefully accepted, and applied to code.      
-
-   - Questionable behavior: hard-coded color (white) for listbox bg
-     reported via rt[at]cpan.org (#18357) by: ozcat[at]bigpond.net.au
-     - resolution: removed hard-code color.
-
-     Notes: I have some recollection of changing this to be white
-     because I wanted to ensure default behavior, but in retrospect, 
-     this was a big mistake, and meant that default user/env
-     preferences would be ignored. Glad someone called me on it...
-
-   - Bug: Forgotten debug line left in code. 
-     reported via rt[at]cpan.org (#17785)  by: northwind_1980 
-     - resolution: removed line.
-
-   - Bug: Invalid behavior related to grab (again... aaarrgh!)
-     reported via newsgroup and email by Lars Oeschey
-
-     Description: 
-       Lars sent sample code that featured two JComboBox instances, one 
-       defined a -selectcommand callback which called 
-       setSelectedIndex(0), and then showPopup in the other instance.
-       The result: grab settings were messed up.
-
-     Problem: the problem was in the ButtonRelease event handler. In
-      it, I called setSelectedIndext (which in turn triggers the
-      selectcommand callback), before calling hidePopup. Big mistake.
-      This appears to be the only place left in the code where they are
-      ordered this way. hidePopup should always be called before
-      triggering the selectcommand callback, otherwise it's very easy
-      to get the current grab mixed up, before hidePopup has had a
-      chance to clear it correctly.
+This is a maintenance release of Tk-JComboBox that addresses an 
+issue with the -popupcreate callback option. In addition, I've
+updated some test cases, added an examples directory, and updated
+some of the Pod files. There is a potential backward compatibility
+issue with this release (the -popupcreate option), but there is no
+major new functionality (At least one new option may be coming in
+the next release...)
  
-     Resolution: reversed ordering of the two lines in ButtonRelease,
-      and the test code appears to work correctly.
+   - Issue: jdtoronto posted a bug report on the Perlmonks site.
+     http://perlmonks.org/?node_id=573624. He was attempting to 
+     use the popupcreate option to modify the JComboBox each time
+     the Popup was triggered. In version 1.11 and for at least the
+     past few versions, registering a callback to this option 
+     meant that you were assuming responsibility for configuring
+     the height/width and positioning of the JCombobox, which can
+     be a pain. 
 
-   - Documentation updates: Looking over the docs in AnnoCPAN I noticed
-     that some of the Subwidgets were mislabled. This has been
-     corrected.
+     -- Resolution: I decided that this was too big a pain to pass on
+     to users, and modified the option so that the physical 
+     configuration occurs outside of this callback. -popupmodify
+     can still be used to override the layout properties if needed.
+     The result is that popupcreate is simpler to implement (it was
+     mostly provided as a means to alter the list item contents of
+     the JComboBox). Documentation, and test cases were adjusted 
+     accordingly, plus an example was provided in the new examples
+     directory that demonstrates the option in action.
+
+   - After conversation with Fred Jan, I reconsidered the implementation
+     of the -textvariable option. JComboBox goes a bit further than some
+     other widgets and heavily controls -textvariable use. I've decided
+     to leave it as is for now, but to hold onto the correspondance and
+     possibly revisit it in the future. No changes aside from a tweak
+     to the docs.
+
+   - Took another pass through the JComboBox docs to update several links
+     that were incorrect, and fix some wording here and there.
 
 INSTALLATION
 
@@ -90,9 +73,13 @@ This module requires these other modules and libraries:
   Tie::Array
   Tie::Watch
 
+Optional dependencies (for testing):
+
+  Test::Pod
+
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2006 Rob Seegel
+Copyright (C) 2001-2006 Rob Seegel (RobSeegel[at]comcast.net)
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

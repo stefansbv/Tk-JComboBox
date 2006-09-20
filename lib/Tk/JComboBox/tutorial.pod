@@ -464,6 +464,9 @@ If you wanted to anchor the search to the end of a string, it could be done like
 
 If you run, this, type 'e' in the entry, and the first item should be selected. Type 'e' again, and now the third entry should be selected.
 
+=head2 The -restrictchoices Option
+
+The -restrictchoices option is another way of dealing with long lists of choices in a JComboBox. It restricts the elements that appear in the Popup Listbox to those that match the item being typed in the JComboBox Entry. This option can only be used in the I<editable> mode. 
 
 =head2 The -updownselect Option
 
@@ -483,7 +486,7 @@ Currently, JComboBox extends the B<-validate> option slightly by offering two ad
 
 =head1 VERSION
 
-This document covers the 1.11 release of JComboBox.
+This document covers the 1.12 release of JComboBox.
 
 =head1 AUTHOR
 
