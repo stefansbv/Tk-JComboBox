@@ -5,6 +5,7 @@ README
 TestNotes
 examples/README
 examples/popupCreate.pl
+examples/select.pl
 examples/simpleEd.pl
 examples/simpleRO.pl
 lib/Tk/CWidget.pm

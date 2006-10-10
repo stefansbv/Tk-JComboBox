@@ -9,7 +9,7 @@
 ## JComboBox.pm is *superficially* similar to the javax.swing.JComboBox
 ## class which is owned by Sun Microsystems. At best, this module shares
 ## some method names, and basic look and feel, but the similarities end 
-## there. None of this code comes from the class. 
+## there. None of this code comes from the Swing class. 
 ##
 ## JComboBox.pm owes its original structure to Graham Barr's MenuEntry
 ## (Thanks, Graham - it was a fine base). It also uses various methods
@@ -20,6 +20,12 @@
 ## wanted in one widget. In addition, features that others have asked
 ## for have been added over time. So this widget represents a combo box
 ## stew with a few extra spices that I've come up with myself. 
+##
+## Finally, thanks to all those who have contributed bug reports,
+## patches, and new ideas over the years. I have attempted to track 
+## who did what within the Changes file, and in some cases within the
+## source when patches were submitted. Your help and feedback has been
+## appreciated.
 #######################################################################
 package Tk::JComboBox;
 
@@ -32,7 +38,7 @@ use Tk::CWidget;
 use Tk::CWidget::Util::Boolean qw(:all);
 
 use vars qw($VERSION);
-our $VERSION = "1.12";
+our $VERSION = "1.13";
 
 BEGIN
 {
@@ -46,9 +52,9 @@ BEGIN
    {
       my ($method, $key) = @_;
       my $sub = sub {
-	 my ($cw, $value) = @_;
-	 return $cw->{$key} unless defined $value;
-	 $cw->{$key} = $value;
+         my ($cw, $value) = @_;
+         return $cw->{$key} unless defined $value;
+         $cw->{$key} = $value;
       };
       no strict 'refs';
       *{$method} = $sub;
@@ -111,7 +117,7 @@ sub ClassInit {
       if ($Tk::platform =~ /Win32/) {
          my $bits = pack("b10"x4,
             ".11111111.",
-	    "..111111..",
+            "..111111..",
             "...1111...",
             "....11...."
          );
@@ -121,10 +127,10 @@ sub ClassInit {
       } else {
          my $bits = pack("b12"x5,
             ".1111111111.",
-	    "..11111111..",
-	    "...111111...",
-	    "....1111....",
-	    ".....11....."
+            "..11111111..",
+            "...111111...",
+            "....1111....",
+            ".....11....."
          );
          $mw->DefineBitmap($BITMAP => 12,5, $bits);
       }
@@ -415,8 +421,8 @@ sub state
    my $button = $cw->Subwidget('Button');
    my $entry = $cw->Subwidget('Entry');
 
-   if ($state eq 'disabled')  { $cw->DisableControls; }
-   elsif ($state eq 'normal') { $cw->EnableControls;  }
+   if    ($state eq 'disabled') { $cw->DisableControls; }
+   elsif ($state eq 'normal')   { $cw->EnableControls;  }
 }
 
 sub textvariable
@@ -551,7 +557,6 @@ sub getItemIndex
    return $index;
 }
 
-
 sub getItemNameAt
 {
    my ($cw, $index) = @_;
@@ -592,11 +597,11 @@ sub hidePopup
    if ($Tk::oldGrab && Exists($Tk::oldGrab) && $Tk::oldGrab->ismapped)
    {
       if ($Tk::oldGrabStatus) {
-	 $Tk::oldGrab->grab       if $Tk::oldGrabStatus eq 'local';
-	 $Tk::oldGrab->grabGlobal if $Tk::oldGrabStatus eq 'global';
+         $Tk::oldGrab->grab       if $Tk::oldGrabStatus eq 'local';
+         $Tk::oldGrab->grabGlobal if $Tk::oldGrabStatus eq 'global';
       }
    }
-   ## END PATCHES
+   ## END PATCH
 }
 
 sub index
@@ -633,17 +638,23 @@ sub insertItemAt
    my $value = $args{'-value'};
    $item->value($value) if defined($value);
 
-   ## Add Name to Listbox
-   $lb->insert($index, $name);
-
-   ## Add ListItem to Internal Array (append or splice)
+   ## Add ListItem to Internal Array and Listbox(append or splice)
    my $listAR = $cw->List;
    if ($lb->index('end') == $index) {
       push @{$listAR}, $item;
    } else {
-      splice(@$listAR, $index, 0, ($item, splice(@$listAR, $index)));
+      splice(@$listAR, $index, 0, ($item, splice(@$listAR, $index))); 
    }
+
+#   my $handle = "one";
+#   my $count = Devel::Leak::NoteSV($handle);
+
    $cw->List($listAR);
+   $cw->ListboxInsert($index, $name);
+
+#   my $count2 = Devel::Leak::CheckSV($handle);
+#   print "1: $count 2: $count2 Diff: " . ($count2-$count) . "\n";
+
 
    ## Set Entry as selected if option is set
    my $selIndex = $cw->Selected;
@@ -664,10 +675,11 @@ sub removeAllItems
 {
    my $cw = shift;
    return unless $cw->getItemCount > 0;
+
    $cw->clearSelection;
-   $cw->Subwidget('Listbox')->delete(0, 'end');
-   $cw->LongestEntry(0);
    $cw->List([]);
+   $cw->ListboxClear;
+   $cw->LongestEntry(0);
 }
 
 sub removeItemAt
@@ -691,10 +703,11 @@ sub removeItemAt
    my $selIndex = $cw->getSelectedIndex;
    $cw->clearSelection;
 
+   ## Delete from List and Listbox
    my $listAR = $cw->List;
    splice(@$listAR, $delIndex, 1);
    $cw->List($listAR);
-   $cw->Subwidget('Listbox')->delete($delIndex);
+   $cw->ListboxDelete($delIndex);
 
    if ($selIndex != $delIndex) {
       $selIndex-- if $delIndex < $selIndex;
@@ -871,9 +884,9 @@ sub AutoFind
    if (!defined($index) || $index < 0) {
       $cw->hidePopup;
       if ($mode eq MODE_EDITABLE) {
-	 $cw->clearSelection;
-	 $cw->DisplayedName($searchStr);
-	 $entry->icursor(length($searchStr));
+         $cw->clearSelection;
+         $cw->DisplayedName($searchStr);
+         $entry->icursor(length($searchStr));
       }
       return;
    }
@@ -915,7 +928,7 @@ sub AutoFind
    ## BUG FIX (cpan#11707/Ken Prows) As of v1.03/03 Mar 05
    $listbox->see($index);
 }
-	
+
 sub BindSubwidgets
 {
    my $cw = shift;
@@ -985,6 +998,7 @@ sub CreateListboxPopup {
       -highlightthickness => 0,
     )->grid(qw/-row 0 -column 0 -sticky nsew/);
    $cw->Advertise(Listbox => $lb);
+   $cw->ListboxClear;
 
    $c->gridRowconfigure(0, -weight => 1);
    $c->gridColumnconfigure(0, -weight => 1);
@@ -1065,7 +1079,7 @@ sub EnableControls
 }
 
 #############################################################################
-## Displays a value within the Box Subwidget, and hides the differences 
+## Displays a value within the Entry Subwidget, and hides the differences 
 ## between the different modes.
 #############################################################################
 sub DisplayedName 
@@ -1077,11 +1091,11 @@ sub DisplayedName
    if (!defined($value)) {
       if ($cw->mode eq MODE_EDITABLE) {
          my $val = $entry->get;
-	 my $index = $entry->index('insert');
-	 return substr($val, 0, $index);
+         my $index = $entry->index('insert');
+         return substr($val, 0, $index);
       }
       elsif ($cw->mode eq MODE_UNEDITABLE) {
-	 return  $entry->cget('-text') || "";
+         return  $entry->cget('-text') || "";
       }
       return "";
    }
@@ -1096,7 +1110,7 @@ sub DisplayedName
    ## The main idea of using a ComboBox is that the List should
    ## contain several values, any of which should already be valid.
    ## For this reason, validation is temporarily disabled then
-   ## reenabled after Box has been set.
+   ## reenabled after Entry has been set.
 
    } elsif ($cw->mode eq MODE_EDITABLE) {
       my $validateMode = $cw->cget('-validate');
@@ -1119,9 +1133,8 @@ sub GetProperty {
    return $val;
 }
 
-
 #############################################################################
-## Arranges layout of the Advertised Box and Button widgets. These subwidgets
+## Arranges layout of the Advertised Entry and Button widgets. These subwidgets
 ## are laid out using the grid manager, which I find tends to scale downwards
 ## better.
 #############################################################################
@@ -1153,8 +1166,50 @@ sub LayoutControls {
    $entry->grid(qw/-row 0 -column 0 -sticky nsew/);
    $button->grid(%buttonInfo);
 
-   $frame->gridRowconfigure(0, -weight => 1);
-   $frame->gridColumnconfigure(0, -weight => 1);
+   $frame->gridRowconfigure(qw/0 -weight 1/);
+   $frame->gridColumnconfigure(qw/0 -weight 1/);
+}
+
+sub ListboxClear 
+{
+   my $cw = shift;
+   if ($Tk::version >= 8.4) {
+      $cw->Subwidget('Listbox')->configure(-listvariable => []);
+   } else {
+      $cw->Subwidget('Listbox')->delete(0, 'end');
+   }
+}
+
+sub ListboxDelete
+{
+   my ($cw, $index) = @_;
+   if ($Tk::version >= 8.4) {
+      my @data = $cw->Subwidget('Listbox')->get(0, 'end');
+      splice(@data, $index, 1);
+      $cw->Subwidget('Listbox')->configure(-listvariable => \@data);
+   } else {
+      $cw->Subwidget('Listbox')->delete($index);
+   }
+}
+     
+sub ListboxInsert
+{
+   my ($cw, $index, $value) = @_;
+
+   ## There appear to be issues associated with using cget to retrieve
+   ## the array ref from the listbox, and reusing that object. Creating
+   ## a new array seems to work fine... odd.
+   if ($Tk::version >= 8.4) {
+      my @data = $cw->Subwidget('Listbox')->get(0, 'end');
+      if ($cw->Subwidget('Listbox')->index('end') == $index) {
+         push @data, $value;
+      } else {
+         splice(@data, $index, 0, ($value, splice(@data, $index)));
+      }
+      $cw->Subwidget('Listbox')->configure(-listvariable => \@data);
+   } else {
+      $cw->Subwidget('Listbox')->insert($index, $value);
+   }
 }
 
 sub MatchCommand
@@ -1172,7 +1227,7 @@ sub MatchCommand
    if ($mode !~ /^((use|ignore)case|exact)$/) {
       $mode = "exact";
       carp "Invalid value $mode for -mode in getItemIndex - " .
-	 "value of 'exact' assumed";
+         "value of 'exact' assumed";
    }
    return 1 if $mode eq 'exact'      && $field eq $searchStr;
    return 1 if $mode eq 'usecase'    && $field =~ /^\Q$searchStr\E/;
@@ -1180,10 +1235,11 @@ sub MatchCommand
    return 0;
 }
 
+#############################################################################
 ## Takes a list of one or more subwidgets and returns 1
 ## if the mouse pointer is pointed over any one of them.
 ## Returns 0 otherwise.
-
+#############################################################################
 sub PointerOverWidget {
    my ($cw, @widgets) = @_;
    my $xPos = $cw->pointerx;
@@ -1231,7 +1287,7 @@ sub SelectCommand
       $cw->LastSelName($selName);
       $cw->LastSelection($selIndex);
       $cw->Callback(-selectcommand => $cw, $selIndex, $selName, $selValue)
-	 if (ref($cw->cget('-selectcommand')) eq 'Tk::Callback');	
+         if (ref($cw->cget('-selectcommand')) eq 'Tk::Callback');	
    }
 }
 
@@ -1367,7 +1423,7 @@ sub UpdateWidth {
    elsif ($action eq "delete") {
       my $currLen = 0;
       foreach my $item (@{$cw->List}) {
-	 $currLen = length($item->name) if $currLen < length($item->name);
+         $currLen = length($item->name) if $currLen < length($item->name);
       }
       $cw->LongestEntry($currLen) if $cw->LongestEntry > $currLen;
    }
@@ -1679,7 +1735,7 @@ sub tie
       ## its items.
 
       else {
-	 $oldTie->removeWatcher($jcb);
+         $oldTie->removeWatcher($jcb);
       }
    }
    $jcb->removeAllItems if $jcb->getItemCount > 0;
@@ -1698,7 +1754,7 @@ sub tie
       ## and it is tied to a JComboBox, then we will register this 
       ## widget as a listener, and will not recreate the tie.
       if (defined($newTie) && ref($newTie) eq 'Tk::JComboBox::Tie') {
-	 $newTie->addWatcher($jcb);
+         $newTie->addWatcher($jcb);
          $jcb->AddList(\@items, "end");
       }
 
@@ -1707,10 +1763,10 @@ sub tie
       ## If this widget was a previous master, then all of its listeners
       ## will be swapped to the new tie.
       else {
-	 $newTie = tie @$newListAR, 'Tk::JComboBox::Tie', $jcb;
+         $newTie = tie @$newListAR, 'Tk::JComboBox::Tie', $jcb;
          $jcb->AddList(\@items, "end");
 
-	 foreach my $l (@$listenerAR) {
+         foreach my $l (@$listenerAR) {
             $l->configure(-choices => \@$newListAR);
          }
       }

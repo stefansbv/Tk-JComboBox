@@ -486,7 +486,7 @@ Currently, JComboBox extends the B<-validate> option slightly by offering two ad
 
 =head1 VERSION
 
-This document covers the 1.12 release of JComboBox.
+This document covers the 1.13 release of JComboBox.
 
 =head1 AUTHOR
 

@@ -68,7 +68,7 @@ This widget contains the Listbox subwidget that displays one or more entries tha
 
 =item Class: L<B<Listbox>|Tk::Listbox>
 
-Used to contain one or more entries, one of which can be selected and displayed within the Box subwidget.
+Used to contain one or more entries, one of which can be selected and displayed within the Box subwidget. I<Note: use caution when using this Subwidget directly. In 804 versions of Tk, Listbox has a memory leak. It's suggested that you use JComboBox methods for adding/deleting/clearing Listbox elements to avoid the leak.>
 
 =back
 
@@ -539,46 +539,41 @@ Moves the Listbox selection up by one entry as long as there is an entry for the
 
 =head2 Creating your own bindings
 
-Currently, binding to JComboBox events can be a tricky task because of design choices I made with JComboBox, and with the fact that it is a Composite with multiple subwidgets that can each process events. For example, what if you wanted to bind a keyboard event to the JComboBox? If you tried the following:
+There really isn't much in the way of convention or policy on how composite widgets, such as JComboBox should handle events and binding, so JComboBox tries to strike a balance between between simplicity, flexibility, and functionality. Even so, simplicity sometimes takes a back seat to the other two. Let's say that after checking out the options, you decide that none of the built-in behavior provides quite what you need, and you decide that a binding is necessary.
 
-   $jcb->bind('<KeyPress>', sub { print "Key: " . shift->XEvent->A . "\n"; });
+If the binding is I<not> for a key-related event, then I'd suggest that you bind directly to one of JComboBox's Subwidgets. They are all documented. You might consider passing a variable containing the JComboBox instead to your event handler as well, because the first parameter passed to your subroutine will be the Subwidget being bound. Be aware that some of these Subwidget may already be bound internally by JComboBox.
 
-It would not work as expected. This is because by default, if the JComboBox widget receives focus, it immediately redirects that focus to the B<Box> subwidget, which is the only subwidget configured to take the focus.
+If you are interested in making a I<key> binding, then my best advice would be to bind to the B<Entry> subwidget, since it is the only widget within JComboBox that has been setup to takefocus. It is important to remember that most of the bindings that are listed in this document, are also bound to B<Entry>, so test any binding you do very carefully to ensure that it does what you wish. Here is an example of how a binding for the <Return> (Enter) key might be done (this should work equally well for either mode): 
 
-This is done for a few reasons:
+   use Tk;
+   use Tk::JComboBox;
 
-1.  More so than any other widget inside JComboBox, the B<Box> (a Label in I<readonly> mode, and an Entry in I<editable> mode) is the focal point. The Listbox isn't always visible, and the Button is intended for mouse interaction. The Box is what displays the value, and in the right mode, allows the user to edit it directly.
+   my $variable;
+   my $mw = MainWindow->new;
+   my $jcb = $mw->JComboBox(
+      -choices => [
+         { -name => 'Black',  -value => '#000000' },
+         { -name => 'Blue',   -value => '#0000ff' },
+         { -name => 'Green',  -value => '#008000' },
+         { -name => 'Purple', -value => '#8000ff' },
+         { -name => 'Red',    -value => '#ff0000' },
+         { -name => 'Yellow', -value => '#ffff00' }],
+      -textvariable => \$variable  
+   )->pack;
+   $jcb->Subwidget('Entry')->bind('<Return>', [\&Submit, $jcb]);
+   $jcb->focus;
 
-2.  I wanted only one widget within JComboBox to accept focus, this way when a user was tabbing between widgets, it would only stop once for JComboBox, as it does for most other widgets, otherwise I find that a user might get confused on why the focus didn't move immediately to the next widget in the application as they tabbed through.
+   MainLoop;
 
-3.  Laziness. In the case of I<editable> mode, I wanted to take advantage of existing bindings for the Entry widget, and the idea of both generating internal events and delegating external key presses seemed like it was more trouble than it was worth. 
-
-So, why not override the bind method so that it always bound directly to the B<Box> subwidget? I considered it, but rejected it because I thought it would be confusing, because it would make the bind method appear to be broken since it would not contain a reference to the JComboBox, but a reference to the B<Box> subwidget. The real problem with this is that if I ever wanted to bind any non keyboard events to the JComboBox, then it wouldn't be easy with the overridden bind.
-
-There are similar problems with other events, so where does this leave you? I advocate two different possibilities. The first is to use or override one of the existing callback options. JComboBox uses several Callbacks that can be overridden to allow for custom behavior. Read the documentation on each Callback, and in the options where there is a default Callback, the name will be listed so that you can call it from within your custom code if you wish. The second would be to get a reference to one or more subwidgets, and bind to them directly. The option you choose will depend largely on what you need to do. Generally, the option callbacks are easier to use, but unfortunately, they do not address all cases.
-
-In the earlier example of the key press, here are some alternatives. Note that each of the approaches are different, and provide varying levels of access.
-
-   ## This code would be called in editable mode only
-   $jcb->configure(-validate => 'key',
-                   -validatecommand => sub {
-      my $newStr = shift;
-      my $newChar = shift;
-      print "new String: $newStr new Character: $newChar\n";
-      return 1; ## Allow character
-   }
-   ## This code would be called in both modes, and after validation
-   $jcb->configure(-keycommand => sub {
-      my ($cw, $key, $keySym, $keySymNum) = @_;
-      print "Key: $key KeySym: $keySym KeySymNum: $keySymNum\n";
-      $cw->AutoFind; ## If you need AutoFind functionality
-   });
-   $jcb->Subwidget('Box')->bind('<KeyRelease>', [\&doSomething, $jcb]);
-   ...
-   sub doSomething {
-      my ($entry, $jcb) = @_; 
-      my $key = $entry->XEvent->A;
-      print "Key: $key\n";
+   sub Submit {
+      my ($entry, $jcb) = @_;
+      print "\nSubmit Called\n";
+      my $index = $jcb->getSelectedIndex();
+      print "Index: $index \n";
+      print "value: " . $jcb->getSelectedValue() . "\n";
+      print "name:  " . $jcb->getItemNameAt($index) . "\n";
+      print "textvariable: $variable \n";
+      $done = "done";
    }
 
 =head1 ALTERNATIVES
@@ -587,7 +582,7 @@ In the earlier example of the key press, here are some alternatives. Note that e
 
 If JComboBox doesn't fit your needs, you're free to modify the code as you see fit, but before you do, you might consider some of the alternatives that are available on CPAN. Even if none of the others is a perfect fit, it may be closer to what you were looking for, and be easier to modify.
 
-The standard distribution contains two Composites that do some of what JComboBox does: L<Tk::BrowseEntry|Tk::BrowseEntry> and L<Tk::Optionmenu|Tk::Optionmenu>. BrowseEntry visually resembles JComboBox in I<editable> mode to a certain extent, and Optionmenu is a bit like JComboBox in I<readonly> mode. The main difference is that JComboBox more closely resembles a Win32 Combo Box.
+The standard distribution contains two Composites that do some of what JComboBox does: L<Tk::BrowseEntry|Tk::BrowseEntry> and L<Tk::Optionmenu|Tk::Optionmenu>. BrowseEntry visually resembles JComboBox in I<editable> mode to a certain extent, and Optionmenu is a bit like JComboBox in I<readonly> mode. The main difference is that JComboBox more closely resembles a Win32 Combo Box (Pre-Windows XP).
 
 =head2 Available on CPAN
 
@@ -623,7 +618,7 @@ MatchEntry is an Entry/Listbox combination maintained by Wolfgang Hommel that is
 
 =head1 VERSION
 
-This document covers the 1.12 release of JComboBox.
+This document covers the 1.13 release of JComboBox.
 
 =head1 AUTHOR
 

@@ -4,6 +4,7 @@ EXAMPLES
 
 Contents:
 
+* select.pl - Example demonstrating ways of getting selection.
 * simpleRO.pl - Simple JComboBox in readonly mode (from the tutorial)
 * simpleEd.pl - Simple JComboBox in editble mode (from the tutorial)
 * popupCreate.pl - Example of the -popupcreate option in action

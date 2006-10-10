@@ -1,60 +1,54 @@
-Tk/JComboBox version 1.12
+Tk/JComboBox version 1.13
 =========================
 
 CHANGES OVERVIEW: (details below)
 
-  Maintenance release to correct various minor bugs and annoyances.
+  Maintenance release to correct memory leak, and minor documentation
+  problems.
  
 OVERVIEW:
 
 JComboBox is a Combo Box implementation that combines several features of the various Combo Box implementations available for Perl/Tk and attempts to provide a solution that should cover the majority of your Combo Box needs. The implementation tends to skew somewhat towards the Java and Win32 implementation of a Combo Box more than the Motif one.
 
-TEST SUITE:
-
- I've spent the majority of the time writing a fairly robust test suite, though there are still a few gaps which are being worked on. A considerable amount of effort has gone into verifying that the unit tests will work on multiple platforms, though I suspect that there may yet be a problem or two remaining (mostly regarding event generation (which seems to be a bit tempermental) and tests that use fonts. I suspect that many of the reported failures I see have more to do with a bad installation of Tk than JComboBox, but your mileage may vary. The tests mostly serve as a tool for me for regression testing, and for anyone else who decides to tinker with the source. I'm always interested in hearing ways in which the test suite can be improved.
-
  Thanks to everyone who has contributed suggestions, code, and any other feedback. I'm not always able to incorporate that feedback, but I've always found it to be helpful. I hope this widget continues to be useful.
 
-CHANGES for 1.12 RELEASE: (Full Change history in Changes file)
+CHANGES for 1.13 RELEASE: (Full Change history in Changes file)
 
-1.12 Maintenance/Bug Fixes:
+1.13 Maintenance/Bug Fixes:
 
-This is a maintenance release of Tk-JComboBox that addresses an 
-issue with the -popupcreate callback option. In addition, I've
-updated some test cases, added an examples directory, and updated
-some of the Pod files. There is a potential backward compatibility
-issue with this release (the -popupcreate option), but there is no
-major new functionality (At least one new option may be coming in
-the next release...)
- 
-   - Issue: jdtoronto posted a bug report on the Perlmonks site.
-     http://perlmonks.org/?node_id=573624. He was attempting to 
-     use the popupcreate option to modify the JComboBox each time
-     the Popup was triggered. In version 1.11 and for at least the
-     past few versions, registering a callback to this option 
-     meant that you were assuming responsibility for configuring
-     the height/width and positioning of the JCombobox, which can
-     be a pain. 
+  There are no new features in this release. It contains some
+minor changes to documentation, and test code. In addition it
+contains one a fix for memory leaks due to the 8.4 version of
+Listbox.
 
-     -- Resolution: I decided that this was too big a pain to pass on
-     to users, and modified the option so that the physical 
-     configuration occurs outside of this callback. -popupmodify
-     can still be used to override the layout properties if needed.
-     The result is that popupcreate is simpler to implement (it was
-     mostly provided as a means to alter the list item contents of
-     the JComboBox). Documentation, and test cases were adjusted 
-     accordingly, plus an example was provided in the new examples
-     directory that demonstrates the option in action.
+   - Issue: JComboBox has exhibted memory leaks due to its use
+     of Tk::Listbox since the 804 (Tk8.4) release.
 
-   - After conversation with Fred Jan, I reconsidered the implementation
-     of the -textvariable option. JComboBox goes a bit further than some
-     other widgets and heavily controls -textvariable use. I've decided
-     to leave it as is for now, but to hold onto the correspondance and
-     possibly revisit it in the future. No changes aside from a tweak
-     to the docs.
+     -- Any megawidget or application that uses Listbox 
+        potentially has this issue, unless a workaround is 
+        used. The workaround regards the new -listvariable
+        option and is less than intuitive, since as the docs
+        for Listbox state, -listvariable is not completely
+        implemented. Suffice to say, there are gotchas. The
+        real solution is to patch the C code so that it no
+        longer leaks. The fix I have in place will do for now.
+        Thanks to Zentara for his posts on c.l.p.tk and 
+        Perlmonks that got me headed in the right direction.
+   
+   - Issue: The new test for Pod has a minor typo, that will
+     result in a test failure instead of a skipped tests for
+     those system that do not have Test::Pod installed. This
+     problem was reported by bdz on c.l.p.tk. 5 Oct 06.
 
-   - Took another pass through the JComboBox docs to update several links
-     that were incorrect, and fix some wording here and there.
+     -- Resolution: Fixed typo.
+
+   - Issue: JComboBox docs need updating for binding/event
+     handling. Also pointed out by bdz on c.l.p.tk.
+
+     -- Resolution: Revised docs and example.
+
+   - Misc: Removed a few tabs from code, along with Line feeds,
+     that have found their way in again.
 
 INSTALLATION
 

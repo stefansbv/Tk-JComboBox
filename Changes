@@ -1,5 +1,41 @@
 Revision history for Perl extension Tk::JComboBox.
 
+1.13 Maintenance/Bug Fixes:
+
+  There are no new features in this release. It contains some
+minor changes to documentation, and test code. In addition it
+contains one a fix for memory leaks due to the 8.4 version of
+Listbox.
+
+   - Issue: JComboBox has exhibted memory leaks due to its use
+     of Tk::Listbox since the 804 (Tk8.4) release.
+
+     -- Any megawidget or application that uses Listbox 
+        potentially has this issue, unless a workaround is 
+        used. The workaround regards the new -listvariable
+        option and is less than intuitive, since as the docs
+        for Listbox state, -listvariable is not completely
+        implemented. Suffice to say, there are gotchas. The
+        real solution is to patch the C code so that it no
+        longer leaks. The fix I have in place will do for now.
+        Thanks to Zentara for his posts on c.l.p.tk and 
+        Perlmonks that got me headed in the right direction.
+   
+   - Issue: The new test for Pod has a minor typo, that will
+     result in a test failure instead of a skipped tests for
+     those system that do not have Test::Pod installed. This
+     problem was reported by bdz on c.l.p.tk. 5 Oct 06.
+
+     -- Resolution: Fixed typo.
+
+   - Issue: JComboBox docs need updating for binding/event
+     handling. Also pointed out by bdz on c.l.p.tk.
+
+     -- Resolution: Revised docs and example.
+
+   - Misc: Removed a few tabs from code, along with Line feeds,
+     that have found their way in again.
+
 1.12 Maintenance/Bug Fixes:
 
 This is a maintenance release of Tk-JComboBox that addresses an 
