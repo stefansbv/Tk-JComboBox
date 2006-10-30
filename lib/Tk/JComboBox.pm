@@ -1,6 +1,6 @@
 #######################################################################
 ## LICENSE:
-## This source code, is copyright (c) 2001-2005 of Rob Seegel
+## This source code, is copyright (c) 2001-2006 of Rob Seegel
 ## <RobSeegel@comcast.net>, and is free software; you can
 ## redistribute and/or modify it under the same terms as Perl itself.
 ##
@@ -38,7 +38,7 @@ use Tk::CWidget;
 use Tk::CWidget::Util::Boolean qw(:all);
 
 use vars qw($VERSION);
-our $VERSION = "1.13";
+our $VERSION = "1.14";
 
 BEGIN
 {
@@ -141,6 +141,8 @@ sub ClassInit {
 
 sub Populate {
    my ($cw ,$args) = @_;
+
+   my $choices = delete $args->{-choices} || delete $args->{-options};
    $cw->SUPER::Populate($args);
 
    ## Initiallize Member variables
@@ -172,13 +174,6 @@ sub Populate {
    $cw->LayoutControls();
    $cw->CreateListboxPopup();
    $cw->BindSubwidgets();
-
-   ## Load up the List prior to other options being set (like textvariable)
-   ## NOTE: that this *could* end up coming back to haunt me, if I start
-   ## to add enhanced styles to individual list items, these styles could
-   ## end up conflicting with other options.
-   my $choices = delete $args->{-choices} || delete $args->{-options};
-   $cw->choices($choices) if $choices;
 
    ## Get All Advertised Widgets - constructed within Subroutines
    ## So that they can be used for ConfigSpecs routine
@@ -254,6 +249,9 @@ sub Populate {
       -listcmd     => '-popupcreate',
       -options     => '-choices',
     );
+
+   $cw->choices($choices) if $choices;
+
     return $cw;
 }
 
@@ -270,13 +268,6 @@ sub choices
    my $tie = Tk::JComboBox::Tie->tie($cw, $newAR, $oldAR);
    if (defined($tie)) { $cw->WatchList($newAR); }
    else               { $cw->WatchList("");  }
-}
-
-sub destroy
-{
-   my $cw = shift;
-   $cw->configure(-choices => "") if defined($cw->cget('-choices'));
-   $cw->SUPER::destroy;
 }
 
 sub disabled
@@ -646,15 +637,8 @@ sub insertItemAt
       splice(@$listAR, $index, 0, ($item, splice(@$listAR, $index))); 
    }
 
-#   my $handle = "one";
-#   my $count = Devel::Leak::NoteSV($handle);
-
    $cw->List($listAR);
    $cw->ListboxInsert($index, $name);
-
-#   my $count2 = Devel::Leak::CheckSV($handle);
-#   print "1: $count 2: $count2 Diff: " . ($count2-$count) . "\n";
-
 
    ## Set Entry as selected if option is set
    my $selIndex = $cw->Selected;
@@ -1839,7 +1823,20 @@ sub Notify
 {
    my ($self, %args) = @_;
 
-   my @dead;
+   ## For some reason, the JComboBox sticks around in memory 
+   ## after it's been destroyed. Remove any destroyed 
+   ## widgets from the list of listeners prior to notification.
+   my @good;
+   foreach my $listener (@{$self->{LISTENERS}}) {
+      if (Tk::Exists($listener)) {
+         push @good, $listener;
+      }
+      else {
+         undef $listener;
+      }
+   }
+   $self->{LISTENERS} = \@good;
+
    my $method  = delete $args{-method};
    my $except  = delete $args{-except};
    my $paramAR = delete $args{-params};

@@ -6,7 +6,7 @@ WriteMakefile(
     'NAME'		=> 'Tk::JComboBox',
     'DISTNAME'          => 'Tk-JComboBox',
     'ABSTRACT'          => 'Combo Box similar to the Java Component',
-    'PREREQ_PM'         => { Tie::Watch => '1.0', Tk => '800.024' },
+    'PREREQ_PM'         => { Tie::Watch => '0', Tk => '800.024' },
     'VERSION_FROM'	=> 'lib/Tk/JComboBox.pm', # finds $VERSION
     'dist'              => { COMPRESS => 'gzip -9f', SUFFIX => 'gz' },
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005

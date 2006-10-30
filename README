@@ -1,4 +1,4 @@
-Tk/JComboBox version 1.13
+Tk/JComboBox version 1.14
 =========================
 
 CHANGES OVERVIEW: (details below)
@@ -12,43 +12,37 @@ JComboBox is a Combo Box implementation that combines several features of the va
 
  Thanks to everyone who has contributed suggestions, code, and any other feedback. I'm not always able to incorporate that feedback, but I've always found it to be helpful. I hope this widget continues to be useful.
 
-CHANGES for 1.13 RELEASE: (Full Change history in Changes file)
+CHANGES for 1.14 RELEASE: (Full Change history in Changes file)
 
-1.13 Maintenance/Bug Fixes:
+1.14 Maintenance/Bug Fixes: (No new features)
 
-  There are no new features in this release. It contains some
-minor changes to documentation, and test code. In addition it
-contains one a fix for memory leaks due to the 8.4 version of
-Listbox.
+   - Issue: bdz (on clptk) reported a problem when choices 
+     arrayref contained a selected param for one of the 
+     entries (in editable mode). The problem was due to 
+     choices method being called prior to the widget 
+     options being defined in ConfigSpecs within the 
+     Populate method.
 
-   - Issue: JComboBox has exhibted memory leaks due to its use
-     of Tk::Listbox since the 804 (Tk8.4) release.
+     - Resolution: Moved choices call to after the 
+        ConfigSpecs definition; tested. Seems fine.
 
-     -- Any megawidget or application that uses Listbox 
-        potentially has this issue, unless a workaround is 
-        used. The workaround regards the new -listvariable
-        option and is less than intuitive, since as the docs
-        for Listbox state, -listvariable is not completely
-        implemented. Suffice to say, there are gotchas. The
-        real solution is to patch the C code so that it no
-        longer leaks. The fix I have in place will do for now.
-        Thanks to Zentara for his posts on c.l.p.tk and 
-        Perlmonks that got me headed in the right direction.
-   
-   - Issue: The new test for Pod has a minor typo, that will
-     result in a test failure instead of a skipped tests for
-     those system that do not have Test::Pod installed. This
-     problem was reported by bdz on c.l.p.tk. 5 Oct 06.
+   - Issue: Benoît Vincente reported obscure problem that
+     indicated problems with JComboBox::Tie. After 
+     investigation, it appears that when the master
+     JComboBox is destroyed, it is not automatically
+     removed the tie. This problem is trickier than 
+     it appears, partly because of the implementation
+     of Tk::JComboBox::Tie and partly because of how
+     widget destruction is done in Perl/Tk. 
 
-     -- Resolution: Fixed typo.
+     - Resolution: Added a few lines to check all 
+     JComboBox listeners, to see if they still existed prior
+     to sending event notification to each. If a listener
+     no longer exists, it is removed, and the reference 
+     is undef'd. This appears to fix the case Benoît 
+     reported (which should rarely occur in any case).
 
-   - Issue: JComboBox docs need updating for binding/event
-     handling. Also pointed out by bdz on c.l.p.tk.
-
-     -- Resolution: Revised docs and example.
-
-   - Misc: Removed a few tabs from code, along with Line feeds,
-     that have found their way in again.
+   - Minor revisions to JComboBox pod.
 
 INSTALLATION
 

@@ -1,5 +1,35 @@
 Revision history for Perl extension Tk::JComboBox.
 
+1.14 Maintenance/Bug Fixes: (No new features)
+
+   - Issue: bdz (on clptk) reported a problem when choices 
+     arrayref contained a selected param for one of the 
+     entries (in editable mode). The problem was due to 
+     choices method being called prior to the widget 
+     options being defined in ConfigSpecs within the 
+     Populate method.
+
+     - Resolution: Moved choices call to after the 
+        ConfigSpecs definition; tested. Seems fine.
+
+   - Issue: Benoît Vincente reported obscure problem that
+     indicated problems with JComboBox::Tie. After 
+     investigation, it appears that when the master
+     JComboBox is destroyed, it is not automatically
+     removed the tie. This problem is trickier than 
+     it appears, partly because of the implementation
+     of Tk::JComboBox::Tie and partly because of how
+     widget destruction is done in Perl/Tk. 
+
+     - Resolution: Added a few lines to check all 
+     JComboBox listeners, to see if they still existed prior
+     to sending event notification to each. If a listener
+     no longer exists, it is removed, and the reference 
+     is undef'd. This appears to fix the case Benoît 
+     reported (which should rarely occur in any case).
+
+   - Minor revisions to JComboBox pod.
+   
 1.13 Maintenance/Bug Fixes:
 
   There are no new features in this release. It contains some
