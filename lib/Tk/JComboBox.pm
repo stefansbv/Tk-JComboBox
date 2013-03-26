@@ -525,7 +525,8 @@ sub getItemIndex
    my $wrap = delete $args{'-wrap'} || 0;
 
    ## type - which string is being searched - the name, or value.
-   my $type = lc($args{'-type'}) || "name";
+   my $args_type = $args{'-type'} ? $args{'-type'} : "name";
+   my $type = lc($args_type);
    if ($type !~ /^(name|value)$/) {
       carp "Invalid value for -type in getItemIndex (valid: name|value)";
       return;
@@ -1207,7 +1208,8 @@ sub MatchCommand
    return $retVal if defined $retVal;
 
    ## Extract mode (defaults to exact if not set
-   my $mode = lc($args{'-mode'}) || "exact";
+   my $args_mode = $args{'-mode'} ? $args{'-mode'} : "exact";
+   my $mode = lc($args_mode);
    if ($mode !~ /^((use|ignore)case|exact)$/) {
       $mode = "exact";
       carp "Invalid value $mode for -mode in getItemIndex - " .
