@@ -1030,7 +1030,7 @@ sub DisableControls
          $entry->configure(-background => $bg);
       }
    }
-   if ($fg ne $button->cget('-foreground')) {
+   if ($fg ne $entry->cget('-foreground')) {
       $entry->{$SWAP_FG} = $entry->cget('-foreground');
       $entry->configure(-foreground => $fg);
    }
@@ -1052,7 +1052,7 @@ sub EnableControls
       $entry->configure(-state => 'normal');
       return if $Tk::VERSION >= 804;
 
-      my $bg = $entry->{SWAP_BG};
+      my $bg = $entry->{$SWAP_BG};
       $entry->{$SWAP_BG} = $entry->cget('-background');
       $entry->configure(-background => $bg);
    }
