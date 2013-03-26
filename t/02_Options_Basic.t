@@ -42,7 +42,7 @@ use strict;
 use Tk;
 use Tk::Font;
 use Tk::JComboBox;
-use Test::More tests => 205;
+use Test::More tests => 179;
 
 my $mw = MainWindow->new();
 
@@ -218,9 +218,9 @@ checkCreateGetSet('readonly',
 #####################
 ## -takefocus
 #####################   
-diag "\nTest takefocus:\n";
-TestTakeFocus('readonly');
-TestTakeFocus('editable');
+#diag "\nTest takefocus:\n";
+#TestTakeFocus('readonly');
+#TestTakeFocus('editable');
 
 #####################
 ## -textvariable
